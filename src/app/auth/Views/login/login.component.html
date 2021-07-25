@@ -1,0 +1,23 @@
+<div class="wrapper">
+    <form novalidate [formGroup]='loginForm' (ngSubmit)='onSubmit()'>
+        <h3>Formulario de Ingreso</h3>
+
+        <div class="form-group">
+            <div class="form-wrapper">
+                <label for="" class="form-label">Usuario</label>
+                <input type="text" class="form-control" formControlName='usuario' placeholder="Usuario">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="form-wrapper">
+                <label for="" class="form-label">Clave</label>
+                <input type="password" class="form-control" formControlName='clave' placeholder="Clave">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" [disabled]="loginForm.pristine || !loginForm.valid">Identifacarse</button>
+    </form>
+
+    <div class='error' *ngIf='err'> Usuario o clave incorrecta </div>
+</div>

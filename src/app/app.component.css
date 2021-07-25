@@ -1,0 +1,29 @@
+a, hr {
+    color: grey;
+}
+
+hr {
+    margin-left: 20px;
+}
+
+a:visited {
+    color: grey;
+}
+
+a:hover {
+    color: white;
+    background-color: black;
+    cursor: pointer;
+}
+
+.icon {
+    margin-left: 15px;
+    float:left;
+    margin-right: 5px;
+    width:32px;
+    height:32px;
+}
+
+button {
+    margin: 15px;
+}

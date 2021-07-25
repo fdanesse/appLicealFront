@@ -1,0 +1,118 @@
+
+<div class="wrapper">
+    <form novalidate [formGroup]='registroForm' (ngSubmit)='onSubmit()'>
+    <h3>Perfil de ...</h3>
+
+    <div class="form-group">
+        <div class="form-wrapper">
+            <label for="">Nombre</label>
+            <input type="text" class="form-control" formControlName='nombre' maxlength="22" placeholder='Nombre' required>
+            <div *ngIf="registroForm.controls.nombre.invalid &&
+                (registroForm.controls.nombre.dirty || registroForm.controls.nombre.touched)"
+                class="alert alert-danger">
+                Campo obligatorio. Palabras de 2 letras o mas, separadas por un espacio.
+            </div>
+        </div>
+        <div class="form-wrapper">
+            <label for="">Apellido</label>
+            <input type="text" class="form-control" formControlName='apellido' maxlength="22" placeholder="Apellido">
+            <div *ngIf="registroForm.controls.apellido.invalid &&
+                (registroForm.controls.apellido.dirty || registroForm.controls.apellido.touched)"
+                class="alert alert-danger">
+                Campo obligatorio. Palabras de 2 letras o mas, separadas por un espacio.
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="form-wrapper">
+            <label for="">Cédula</label>
+            <input type="text" class="form-control" formControlName='cedula' minlength="8" maxlength="8" placeholder="78945612">
+            <div *ngIf="registroForm.controls.cedula.invalid &&
+                (registroForm.controls.cedula.dirty || registroForm.controls.cedula.touched)"
+                class="alert alert-danger">
+                Campo obligatorio de 8 caracteres numéricos
+            </div>
+        </div>
+
+        <div class="form-wrapper">
+            <label for="">Email</label>
+            <input type="text" class="form-control" formControlName='email' maxlength="22" placeholder="email@example.com">
+            <div *ngIf="registroForm.controls.email.invalid &&
+                (registroForm.controls.email.dirty || registroForm.controls.email.touched)"
+                class="alert alert-danger">
+                Campo opcional de tipo email
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="form-wrapper">
+            <label for="">celular</label>
+            <input type="text" class="form-control" formControlName='celular' minlength="9" maxlength="9" placeholder="099123456">
+            <div *ngIf="registroForm.controls.celular.invalid &&
+                (registroForm.controls.celular.dirty || registroForm.controls.celular.touched)"
+                class="alert alert-danger">
+                Campo opcional de 9 dígitos numéricos
+            </div>
+        </div>
+
+        <div class="form-wrapper">
+            <label for="">Usuario</label>
+            <input type="text" class="form-control" formControlName='usuario' minlength="4" maxlength="18" placeholder="Usuario">
+            <div *ngIf="registroForm.controls.usuario.invalid &&
+                (registroForm.controls.usuario.dirty || registroForm.controls.usuario.touched)"
+                class="alert alert-danger">
+                Campo obligatorio de 4 a 18 dígitos alfanuméricos
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <div class="form-wrapper">
+            <label for="">clave</label>
+            <input type="password" class="form-control" formControlName='clave' minlength="0" maxlength="16">
+            <div *ngIf="registroForm.controls.clave.invalid &&
+                (registroForm.controls.clave.dirty || registroForm.controls.clave.touched)"
+                class="alert alert-danger">
+                12 a 16 caracteres (numeros, letras) Al menos 1 mayúscula y al menos un caracter especial ($@!%*?&))
+            </div>
+        </div>
+        <div class="form-wrapper">
+            <label for="">Repite la clave</label>
+            <input type="password" class="form-control" formControlName='claveR' minlength="0" maxlength="16">
+            <div *ngIf="registroForm.errors?.passwordsNotEqual && (registroForm.touched || registroForm.dirty)"
+                class="alert alert-danger">
+                No coincide con la clave.
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="form-wrapper">
+            <label>Foto personal</label>
+            <div class="video_container">
+                <video id="localVideo" autoplay playsinline muted></video>
+                <button type="button"  id="btnpicture" class="btn btn-sm btn-success" (click)="capture()">
+                    Fotografiar
+                </button>
+            </div>
+        </div>
+        <div class="form-wrapper">
+            <label for="foto">Foto personal</label>
+            <div class="video_container">
+                <canvas id="canvas" [hidden]="registroForm.controls.foto.invalid"></canvas>
+                <div *ngIf="registroForm.controls.foto.invalid" class="alert alert-danger">
+                    Es necesaria la fotografía de tu rostro.
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="registroForm.pristine || !registroForm.valid">Actualizar</button>
+        <button type="reset" class="btn btn-primary btn-lg" [disabled]="!userPerfil" (click)="delete()">Eliminar</button>
+    </form>
+
+    <div class='error' *ngIf='err'> {{ err }} </div>
+
+</div>

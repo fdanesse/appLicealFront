@@ -1,0 +1,42 @@
+<nav class="navbar navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+
+    <div class="collapse" id="navbarToggleExternalContent">
+        <div class="bg-dark">
+
+            <a class="dropdown-item bg-dark" href="#">
+                <fa-icon class="icon" [icon]="homeIcon" size="lg"></fa-icon>
+                Home</a>
+            <hr>
+
+            <ng-container *ngIf='!token; else logueado' class="container-fluid">
+                <a class="dropdown-item bg-dark" routerLink="/auth/login" (click)="toggleNavBar()">
+                    <fa-icon class="icon" [icon]="keyIcon" size="lg"></fa-icon>
+                    Entrar</a>
+                <a class="dropdown-item bg-dark" routerLink="/auth/registro" (click)="toggleNavBar()">
+                    <fa-icon class="icon" [icon]="registroIcon" size="lg"></fa-icon>
+                    Registrarme</a>
+            </ng-container>
+            
+            <ng-template #logueado>
+                <a class="dropdown-item bg-dark" [routerLink]="['/auth/perfil', userLoggued._id]" (click)="toggleNavBar()">
+                    <!--<img class="rounded-circle" src={{userLoggued.foto}}>-->
+                    <fa-icon class="icon" [icon]="perfilIcon" size="lg"></fa-icon>
+                    {{userLoggued.usuario}}
+                </a>
+                <hr>
+            
+                <a class="dropdown-item bg-dark" (click)='salir()' (click)="toggleNavBar()">
+                    <fa-icon class="icon" [icon]="salirIcon" flip="horizontal" size="lg"></fa-icon>
+                    Salir</a>
+            </ng-template>
+            
+        </div>
+    </div>
+</nav>
+
+<router-outlet></router-outlet>
