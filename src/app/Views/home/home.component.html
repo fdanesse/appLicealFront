@@ -1,4 +1,4 @@
-<div class="container-fluid total">
+<div class="container-fluid">
     <section>
         <div class="section-container">
           <h1>Bienvenido a ...</h1>
@@ -6,6 +6,10 @@
         </div>
     </section>
 
+    <div class="row">
+        <button *ngIf='userLoggued' type="button" class="btn btn-lg btn-secondary">Aulas Remotas</button>
+    </div>
+    
     <footer id="footer">
         <div class="container">
           <div class="copyright">
