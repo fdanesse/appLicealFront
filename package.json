@@ -22,8 +22,9 @@
         "@fortawesome/angular-fontawesome": "^0.7.0",
         "@fortawesome/fontawesome-svg-core": "^1.2.35",
         "@fortawesome/free-solid-svg-icons": "^5.15.3",
-        "ngx-socket-io": "^3.2.0",
+        "@types/socket.io-client": "^3.0.0",
         "rxjs": "~6.5.5",
+        "socket.io-client": "^2.4.0",
         "tslib": "^2.0.0",
         "zone.js": "~0.10.3"
     },
