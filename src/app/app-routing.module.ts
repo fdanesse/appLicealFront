@@ -8,7 +8,8 @@ const routes: Routes = [
     { path: '', component: HomeComponent },
     
     { path: 'auth', loadChildren: () => import('./auth/auth.module').then(mod => mod.AuthModule) },
-    
+    { path: 'aulasRemotas', loadChildren: () => import('./aulas-remotas/aulas-remotas.module').then(mod => mod.AulasRemotasModule) },
+
     { path: '**', component: HomeComponent }
 ];
 
