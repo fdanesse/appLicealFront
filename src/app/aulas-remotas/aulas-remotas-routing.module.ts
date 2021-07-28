@@ -10,7 +10,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    imports: [RouterModule.forChild(routes)], //https://medium.com/@HenryGBC/c%C3%B3mo-implementar-lazy-loading-en-angular-74b6e85d021f
+    imports: [RouterModule.forChild(routes)],
     exports: [RouterModule]
 })
 

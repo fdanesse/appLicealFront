@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-
+import { ChatService } from '../../services/chat.service';
 
 @Component({
     selector: 'app-aulas-remotas',
@@ -7,8 +7,8 @@ import { Component } from '@angular/core';
     styleUrls: ['./aulas-remotas.component.css']
 })
 export class AulasRemotasComponent {
-
-    constructor( ) { 
+  
+    constructor(private chatservice: ChatService) { 
+        //this.chatservice.sendMessage("OK");
     }
-
 }

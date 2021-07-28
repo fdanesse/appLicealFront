@@ -11,6 +11,18 @@ import { UsersService } from './auth/Services/users.service';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { NoauthGuard } from './auth/guards/noauth.guard';
 
+import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
+const config: SocketIoConfig = {
+    url: 'http://localhost:8080',
+    options: {
+        withCredentials: false,
+        rememberUpgrade:true,
+        transports: ['websocket'],
+        secure:true, 
+        rejectUnauthorized: false
+    }}
+
+
 @NgModule({
     declarations: [
         AppComponent,
@@ -21,6 +33,7 @@ import { NoauthGuard } from './auth/guards/noauth.guard';
         HttpClientModule,
         AppRoutingModule,
         FontAwesomeModule,
+        SocketIoModule.forRoot(config),
     ],
     providers: [UsersService, AuthGuard, NoauthGuard],
     bootstrap: [AppComponent]
