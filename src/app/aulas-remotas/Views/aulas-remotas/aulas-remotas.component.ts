@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ChatService } from '../../services/chat.service';
+import { SocketService } from '../../services/Socket.service';
 
 @Component({
     selector: 'app-aulas-remotas',
@@ -8,7 +8,6 @@ import { ChatService } from '../../services/chat.service';
 })
 export class AulasRemotasComponent {
   
-    constructor(private chatservice: ChatService) { 
-        //this.chatservice.sendMessage("OK");
+    constructor(private socketService: SocketService) { 
     }
 }

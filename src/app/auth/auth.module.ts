@@ -26,6 +26,6 @@ import { AuthRoutingModule } from './auth-routing.module';
         //HttpClientModule,
         AuthRoutingModule
     ],
-    //providers: [AuthGuard, NoauthGuard] //UsersService
+    //providers: [UsersService, AuthGuard, NoauthGuard]
 })
 export class AuthModule { }
