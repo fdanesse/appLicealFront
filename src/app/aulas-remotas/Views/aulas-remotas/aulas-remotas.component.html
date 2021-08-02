@@ -1,1 +1,17 @@
-<button>Coso</button>
+<div class="wrapper">
+    <form novalidate [formGroup]='classRoomForm' (ngSubmit)='onSubmit()'>
+        <h3>Crear Aula Remota</h3>
+
+        <div class="form-group">
+            <div class="form-wrapper">
+                <label for="" class="form-label">Aula</label>
+                <input type="text" class="form-control" formControlName='aula' placeholder="Nombre de la Clase">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Entrar</button>
+        <!--FIXME: [disabled]="classRoomForm.pristine || !classRoomForm.valid"-->
+    </form>
+
+    <!--<div class='error' *ngIf='err'> Error ... </div>-->
+</div>
