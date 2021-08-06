@@ -33,4 +33,5 @@ export class AulasRemotasComponent implements OnInit {
             // [routerLink]="['/auth/perfil', userLoggued._id]"
         }
     }
+
 }
