@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "applicealprueba": {
+      "hosting": {
+        "AngularBase": [
+          "applicealprueba"
+        ]
+      }
+    }
+  }
+}

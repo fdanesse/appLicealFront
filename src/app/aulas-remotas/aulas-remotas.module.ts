@@ -10,7 +10,7 @@ import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
 import { AulaComponent } from './Views/aula/aula.component';
 
 const config: SocketIoConfig = {
-    url: 'http://localhost:8080',
+    url: 'https://lit-fortress-19290.herokuapp.com',
     options: {
         withCredentials: false,
         rememberUpgrade:true,
