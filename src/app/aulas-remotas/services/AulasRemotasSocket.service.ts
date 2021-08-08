@@ -26,7 +26,7 @@ export class AulasRemotasSocket {
     public newRespuesta = this.obsNewRespuesta.asObservable();
 
     constructor(private socket: Socket, private userService: UsersService) {
-        
+        // FIXME: Resolver el uso del token y usuario logueado
         this.tokenSubscription = this.userService.obsToken.subscribe(
             res => {
                 this.token = res;
@@ -48,14 +48,17 @@ export class AulasRemotasSocket {
 
     processEvents(){
         this.socket.on('connect', () => {
+            // FIXME: que no se envie nada antes de que esto se ejecute.
             console.log('Socket conectado');
         });
 
         this.socket.on("disconnect", (reason) => {
+            // FIXME: Resolver desconexión de socket local
             console.log('Socket desconectado:', reason);
         });
 
         this.socket.on("connect_error", (error) => {
+            // FIXME: Resolver este error de conexión
             console.log('Socket error de conexión:', error);
         });
         

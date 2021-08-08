@@ -31,7 +31,7 @@ export class AulaComponent implements OnInit, OnDestroy {
         this.newOfferSubscription = this.aulasSocketService.newOffer.subscribe(
             offer => {
                 if (offer){
-                    //console.log("Nueva oferta recibida...", offer);
+                    console.log("Nueva oferta recibida...", offer);
                     this.realizarRespuesta(offer);
                 }
             },
@@ -43,7 +43,7 @@ export class AulaComponent implements OnInit, OnDestroy {
         this.newCandidateSubscription = this.aulasSocketService.newCandidate.subscribe(
             candidato => {
                 if (candidato){
-                    //console.log("Nuevo candidato recibido...");
+                    console.log("Nuevo candidato recibido...");
                     this.peerConn.addIceCandidate(candidato);
                 }
             },
@@ -55,7 +55,7 @@ export class AulaComponent implements OnInit, OnDestroy {
         this.newRespuestaSubscription = this.aulasSocketService.newRespuesta.subscribe(
             respuesta => {
                 if (respuesta){
-                    //console.log("Nueva respuesta recibida...", respuesta);
+                    console.log("Nueva respuesta recibida...", respuesta);
                     this.peerConn.setRemoteDescription(respuesta);
                 }
             },
@@ -79,7 +79,7 @@ export class AulaComponent implements OnInit, OnDestroy {
         this.peerConn.onicecandidate = null
 
         this.peerConn = new RTCPeerConnection();
-        //console.log('Seteando descripción remota...')
+        console.log('Seteando descripción remota...')
         this.peerConn.setRemoteDescription(new RTCSessionDescription(offer))
             .then(() => {
                 return navigator.mediaDevices.getUserMedia({video: {width:200, height: 200}, audio: false});
@@ -90,21 +90,21 @@ export class AulaComponent implements OnInit, OnDestroy {
                 this.stream.getTracks().forEach(track => {this.peerConn.addTrack(track, this.stream);});
             })
             .then(() => {
-                //console.log("Creando Respuesta...")
+                console.log("Creando Respuesta...")
                 return this.peerConn.createAnswer();
             })
             .then((answer) => {
-                //console.log("Seteando descripción local...")
+                console.log("Seteando descripción local...")
                 return this.peerConn.setLocalDescription(answer);
             })
             .then((answer) => {
-                //console.log("Enviando Respuesta", this.peerConn.localDescription);
+                console.log("Enviando Respuesta", this.peerConn.localDescription);
                 this.aulasSocketService.enviarRespuesta(this.peerConn.localDescription);
             })
             .catch(this.UserMediaError);
 
         this.peerConn.addEventListener("track", event => {
-            //console.log("Stream Agregado.")
+            console.log("Stream Agregado.", event);
             this.remoteVideo.srcObject = event.streams[0];
         }, false);
 
@@ -114,7 +114,6 @@ export class AulaComponent implements OnInit, OnDestroy {
             //if (trackList.length == 0) {this.closeVideoCall();}
             console.log("Remove Track");
         });
-        
     }
 
     realizarLlamada(){
@@ -138,7 +137,7 @@ export class AulaComponent implements OnInit, OnDestroy {
         al RTCPeerConnection, uno por cada configuración potencial que descubre.
         */
         this.peerConn.onicecandidate = (event) => {
-            //console.log("Enviando candidato...");
+            console.log("Enviando candidato...");
             this.aulasSocketService.enviarCandidato(event.candidate);
         }
 
@@ -154,11 +153,11 @@ export class AulaComponent implements OnInit, OnDestroy {
         this.peerConn.onnegotiationneeded = () => {
             this.peerConn.createOffer()
                 .then((offer) => {
-                    //console.log("Seteando Description local...")
+                    console.log("Seteando Description local...")
                     return this.peerConn.setLocalDescription(offer);
                 })
                 .then(() => {
-                    //console.log("Enviando Description local.")
+                    console.log("Enviando Description local.")
                     this.aulasSocketService.enviarOferta(this.aula, this.peerConn.localDescription);;
                 })
                 .catch((reason) => {
@@ -166,10 +165,9 @@ export class AulaComponent implements OnInit, OnDestroy {
                 });
             };
 
-        this.peerConn.addEventListener("track", e => {
-            //console.log("Stream Agregado.")
-            this.remoteVideo = document.getElementById('remoteVideo');
-            this.remoteVideo.srcObject = e.streams[0];
+        this.peerConn.addEventListener("track", event => {
+            console.log("Stream Agregado.", event);
+            this.remoteVideo.srcObject = event.streams[0];
         }, false);
 
         this.peerConn.addEventListener("removetrack", e => {
@@ -188,30 +186,30 @@ export class AulaComponent implements OnInit, OnDestroy {
                     this.localvideo.srcObject = stream;
                     //FIXME: Leer => https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/addStream
                     this.stream.getTracks().forEach(track => {this.peerConn.addTrack(track, this.stream);});
-                    //console.log("Streaming local agregado.")
+                    console.log("Streaming local agregado.")
                 })
                 .catch(this.UserMediaError);
         }else {this.UserMediaError;}
     }
 
     crearRTCPeerConnection(){
-        //console.log("RTCPeerConnection creada.")
+        console.log("RTCPeerConnection creada.")
         const configuration = {
             iceServers: [{
-                    "urls": [ 
-                        "stun:stun.l.google.com:19302",
-                        "stun:stun1.l.google.com:19302",
-                        "stun:stun2.l.google.com:19302",
-                        "stun:stun3.l.google.com:19302",
-                        "stun:stun4.l.google.com:19302",
-                        "stun:stun.ekiga.net",
-                        "stun:stun.ideasip.com",
-                        "stun:stun.schlund.de",
-                        "stun:stun.stunprotocol.org:3478",
-                        "stun:stun.voiparound.com",
-                        "stun:stun.voipbuster.com",
-                        "stun:stun.voipstunt.com"]
-                }]
+                "urls": [ 
+                    "stun:stun.l.google.com:19302",
+                    "stun:stun1.l.google.com:19302",
+                    "stun:stun2.l.google.com:19302",
+                    "stun:stun3.l.google.com:19302",
+                    "stun:stun4.l.google.com:19302",
+                    "stun:stun.ekiga.net",
+                    "stun:stun.ideasip.com",
+                    "stun:stun.schlund.de",
+                    "stun:stun.stunprotocol.org:3478",
+                    "stun:stun.voiparound.com",
+                    "stun:stun.voipbuster.com",
+                    "stun:stun.voipstunt.com"]
+            }]
         };
         this.peerConn = new RTCPeerConnection(configuration);
     }
