@@ -108,11 +108,12 @@
             </div>
         </div>
     </div>
-
+        <h3>Usuario:</h3>
+        <pre> {{ userPerfil | json }} </pre>
+        
         <button type="submit" class="btn btn-primary btn-lg" [disabled]="registroForm.pristine || !registroForm.valid">Actualizar</button>
         <button type="reset" class="btn btn-primary btn-lg" [disabled]="!userPerfil" (click)="delete()">Eliminar</button>
     </form>
 
     <div class='error' *ngIf='err'> {{ err }} </div>
-
 </div>

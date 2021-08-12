@@ -9,7 +9,7 @@ import { Usuario } from '../models/user.model';
 @Injectable({providedIn: 'root'})  // Quitandolo solo se accedería desde modulo hijo (auth.module en este caso)
 export class UsersService {
 
-    private url: string = 'https://lit-fortress-19290.herokuapp.com'; //'http://localhost:8080';
+    private url: string = 'http://localhost:8080'; // 'https://lit-fortress-19290.herokuapp.com';
 
     private obsT = new BehaviorSubject(null);
     private obsUL = new BehaviorSubject(null);
@@ -62,6 +62,8 @@ export class UsersService {
                     this.saveUserLoggued(usuario);
                     },
                 err => {
+                    window.alert(JSON.stringify(err));
+                    console.log(err);
                 }
             )
         );
@@ -75,11 +77,15 @@ export class UsersService {
                 res => {
                     const { authUser, accesToken } = res;
                     const usuario = new Usuario(authUser);
+                    // FIXME: mejorar el estilo de esta bienvenida
                     window.alert(`Bienvenido ${usuario.usuario}`);
                     this.saveToken(accesToken);
                     this.saveUserLoggued(usuario);
                     },
                 err => {
+                    // FIXME: obtener los mensajes (msg) de err[errors] que es un array de errores
+                    window.alert(JSON.stringify(err));
+                    console.log(err);
                 }
             )
         );
@@ -89,8 +95,13 @@ export class UsersService {
         const httpOptions = {headers: new HttpHeaders({'Authorization': this.getToken()})};
         return this.httpClient.get(this.url  + '/usuarios/user/' + _id, httpOptions).pipe(
             tap(
-                res => {},
-                err => {console.log(err);}
+                res => {
+                    //console.log(res);
+                },
+                err => {
+                    window.alert(JSON.stringify(err));
+                    console.log(err);
+                }
             )
         );
     }
@@ -108,7 +119,10 @@ export class UsersService {
                     if (usuario._id === userlogged._id){
                         this.saveUserLoggued(usuario);}
                 },
-                err => {console.log(err);}
+                err => {
+                    window.alert(JSON.stringify(err));
+                    console.log(err);
+                }
             )
         );
     }
@@ -122,7 +136,10 @@ export class UsersService {
                     if (_id === userlogged._id){
                         this.logout();}
                 },
-                err => {console.log(err);}
+                err => {
+                    window.alert(JSON.stringify(err));
+                    console.log(err);
+                }
             )
         );
     }

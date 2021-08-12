@@ -30,21 +30,19 @@ export class RegistroComponent implements OnInit, OnDestroy {
         this.canvas = document.getElementById('canvas');
         this.localvideo = document.getElementById('localVideo');
         if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.getUserMedia({video: {width:200, height: 200}, audio: false},
-                stream => {
-                    this.stream = stream;
-                    this.localvideo.srcObject = stream
-                }, err => {
-                    console.log("Video Error:", err)
-                    window.alert("Se necesita una cámara para tomar la fotografía");
-                })
+            navigator.mediaDevices.getUserMedia({video: {width:200, height: 200}, audio: false})
+            .then(stream => {
+                this.stream = stream;
+                this.localvideo.srcObject = stream;
+            })
+            .catch(err => {window.alert("Se necesita una cámara para tomar la fotografía");});
         }else {window.alert("Se necesita una cámara para tomar la fotografía");}
     }
 
     ngOnDestroy(){
         if (this.subs) {this.subs.unsubscribe();}
-        this.stream.getAudioTracks().forEach(function(track) {track.stop();});
-        this.stream.getVideoTracks().forEach(function(track) {track.stop();});
+        this.stream.getAudioTracks().forEach(track => {track.stop();});
+        this.stream.getVideoTracks().forEach(track => {track.stop();});
         this.stream = null;
     }
 
@@ -95,12 +93,9 @@ export class RegistroComponent implements OnInit, OnDestroy {
                     this.router.navigateByUrl('/');
                 },
                 err => {
+                    // FIXME: obtener los mensajes (msg) de err[errors] que es un array de errores
                     this.err = err.statusText;
-                    if (this.err === "Unknown Error"){
-                        window.alert("Registro incorrecto. Error en el Servidor.");
-                    }else{
-                        window.alert(`Registro incorrecto ${err.statusText}`);}
-            });
+                });
         }
     }
 

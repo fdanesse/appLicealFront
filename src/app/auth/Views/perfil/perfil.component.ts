@@ -41,58 +41,56 @@ export class PerfilComponent implements OnInit, OnDestroy {
         this.canvas = document.getElementById('canvas');
         this.localvideo = document.getElementById('localVideo');
         if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.getUserMedia({video: {width:200, height: 200}, audio: false},
-                stream => {
-                    this.stream = stream;
-                    this.localvideo.srcObject = stream
-                }, err => {
-                    console.log("Video Error:", err)
-                    window.alert("Se necesita una cámara para tomar la fotografía");
-                })
+            navigator.mediaDevices.getUserMedia({video: {width:200, height: 200}, audio: false})
+            .then(stream => {
+                this.stream = stream;
+                this.localvideo.srcObject = stream;
+            })
+            .catch(err => {window.alert("Se necesita una cámara para tomar la fotografía");});
         }else {window.alert("Se necesita una cámara para tomar la fotografía");}
 
-        this.loadData();
-    }
-
-    ngOnDestroy(){
-        if (this.subs) {this.subs.unsubscribe();}
-        if (this.userSubscription) {this.userSubscription.unsubscribe();}
-        if (this.tokenSubscription) {this.tokenSubscription.unsubscribe();}
-        this.stream.getAudioTracks().forEach(function(track) {track.stop();});
-        this.stream.getVideoTracks().forEach(function(track) {track.stop();});
-        this.stream = null;
-    }
-
-    loadData() {
         this.userSubscription = this.userService.getPerfil(this._route.snapshot.paramMap.get('_id')).subscribe(
             res => {
                 this.userPerfil = res.user;
-
-                let data = res.user.foto // this.canvas.toDataURL('image/png');
-                this.registroForm.controls['foto'].setValue(res.user.foto);
-
-                this.canvas.setAttribute('width', this.localvideo.videoWidth);
-                this.canvas.setAttribute('height', this.localvideo.videoHeight);
-
-                let context = this.canvas.getContext("2d")
-                let imagen = new Image();
-                imagen.src = data;
-                context.drawImage(imagen, 0, 0, this.localvideo.videoWidth, this.localvideo.videoHeight);
-                
-                this.registroForm.controls['nombre'].setValue(res.user.nombre);
-                this.registroForm.controls['apellido'].setValue(res.user.apellido);
-                this.registroForm.controls['cedula'].setValue(res.user.cedula);
-                this.registroForm.controls['email'].setValue(res.user.email);
-                this.registroForm.controls['celular'].setValue(res.user.celular);
-                this.registroForm.controls['usuario'].setValue(res.user.usuario);
-                //this.registroForm.controls['clave'].setValue(res.user.clave);
-                //this.registroForm.controls['claveR'].setValue(res.user.claveR);
+                this.loadData();
             },
             err => {
                 window.alert(`${err.statusText}`);
                 this.router.navigateByUrl('/');
             }
         );
+    }
+
+    ngOnDestroy(){
+        if (this.subs) {this.subs.unsubscribe();}
+        if (this.userSubscription) {this.userSubscription.unsubscribe();}
+        if (this.tokenSubscription) {this.tokenSubscription.unsubscribe();}
+        this.stream.getAudioTracks().forEach(track => {track.stop();});
+        this.stream.getVideoTracks().forEach(track => {track.stop();});
+        this.stream = null;
+    }
+
+    loadData() {
+        let data = this.userPerfil.foto // this.canvas.toDataURL('image/png');
+        this.registroForm.controls['foto'].setValue(this.userPerfil.foto);
+
+        this.canvas.setAttribute('width', this.localvideo.videoWidth);
+        this.canvas.setAttribute('height', this.localvideo.videoHeight);
+
+        // FIXME: Usualmente no se dibuja la imagen
+        let context = this.canvas.getContext("2d")
+        let imagen = new Image();
+        imagen.src = data;
+        context.drawImage(imagen, 0, 0, this.localvideo.videoWidth, this.localvideo.videoHeight);
+        
+        this.registroForm.controls['nombre'].setValue(this.userPerfil.nombre);
+        this.registroForm.controls['apellido'].setValue(this.userPerfil.apellido);
+        this.registroForm.controls['cedula'].setValue(this.userPerfil.cedula);
+        this.registroForm.controls['email'].setValue(this.userPerfil.email);
+        this.registroForm.controls['celular'].setValue(this.userPerfil.celular);
+        this.registroForm.controls['usuario'].setValue(this.userPerfil.usuario);
+        //this.registroForm.controls['clave'].setValue(this.userPerfil.clave);
+        //this.registroForm.controls['claveR'].setValue(this.userPerfil.claveR);
     }
 
     settingFormControls(): void {
@@ -146,6 +144,8 @@ export class PerfilComponent implements OnInit, OnDestroy {
                 res => {
                     this.err = "";
                     window.alert("Perfil actualizado.");
+                    this.userPerfil = res.user;
+                    this.loadData();
                 },
                 err => {
                     this.err = err.statusText;
