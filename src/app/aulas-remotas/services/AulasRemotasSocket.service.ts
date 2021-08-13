@@ -1,31 +1,28 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Subscription } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 
 // https://www.npmjs.com/package/ngx-socket-io
 import { Socket, SocketIoConfig } from 'ngx-socket-io';
 
-import { UsersService } from '../../auth/Services/users.service';
 
 const config: SocketIoConfig = {
     url: 'http://localhost:8080', //'https://lit-fortress-19290.herokuapp.com',
+    //options corrige => Access to XMLHttpRequest at 'http://localhost:8080/socket.io/?EIO=3&transport=polling&t=Nhk9XQr' from origin 'http://localhost:4200' has been blocked by CORS policy: The value of the 'Access-Control-Allow-Origin' header in the response must not be the wildcard '*' when the request's credentials mode is 'include'. The credentials mode of requests initiated by the XMLHttpRequest is controlled by the withCredentials attribute.
     options: {
         withCredentials: false,
         rememberUpgrade:true,
         transports: ['websocket'],
         secure:true, 
-        rejectUnauthorized: false
-    }}
-//options corrige => Access to XMLHttpRequest at 'http://localhost:8080/socket.io/?EIO=3&transport=polling&t=Nhk9XQr' from origin 'http://localhost:4200' has been blocked by CORS policy: The value of the 'Access-Control-Allow-Origin' header in the response must not be the wildcard '*' when the request's credentials mode is 'include'. The credentials mode of requests initiated by the XMLHttpRequest is controlled by the withCredentials attribute.
+        rejectUnauthorized: false,
+        query: {
+            token: localStorage.getItem("Authorization")
+        },
+    }
+}
 
 
 @Injectable({ providedIn: 'root' })
 export class AulasRemotasSocket extends Socket{
-
-    token = '';
-    userLoggued = null;
-
-    private tokenSubscription: Subscription = null;
-    private userLogguedSubscription: Subscription = null;
 
     private obsNewOffer = new BehaviorSubject(null);
     public newOffer = this.obsNewOffer.asObservable();
@@ -36,25 +33,8 @@ export class AulasRemotasSocket extends Socket{
     private obsNewRespuesta = new BehaviorSubject(null);
     public newRespuesta = this.obsNewRespuesta.asObservable();
 
-    constructor(private userService: UsersService) {
+    constructor() {
         super(config);
-
-        // FIXME: Resolver el uso del token y usuario logueado
-        this.tokenSubscription = this.userService.obsToken.subscribe(
-            res => {
-                this.token = res;
-            },
-            err => {
-                this.token = '';
-            });
-
-        this.userLogguedSubscription = this.userService.obsUserLoggued.subscribe(
-            res => {
-                this.userLoggued = res;
-            },
-            err => {
-                this.userLoggued = null;
-            });
 
         this.processEvents();
     }
@@ -109,8 +89,6 @@ export class AulasRemotasSocket extends Socket{
     }
 
     ngOnDestroy(){
-        if (this.tokenSubscription) this.tokenSubscription.unsubscribe();
-        if (this.userLogguedSubscription) this.userLogguedSubscription.unsubscribe();
     }
 
 }
