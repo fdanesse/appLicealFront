@@ -24,11 +24,12 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-solid-svg-icons": "^5.15.3",
     "@types/socket.io-client": "^3.0.0",
+    "firebase": "^7.0 || ^8.0",
+    "jwt-decode": "^3.1.2",
     "ngx-socket-io": "^3.2.0",
     "rxjs": "~6.5.5",
     "tslib": "^2.0.0",
-    "zone.js": "~0.10.3",
-    "firebase": "^7.0 || ^8.0"
+    "zone.js": "~0.10.3"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.1000.8",

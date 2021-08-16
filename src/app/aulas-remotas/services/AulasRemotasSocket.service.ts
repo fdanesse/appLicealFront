@@ -41,12 +41,12 @@ export class AulasRemotasSocket extends Socket{
 
     processEvents(){
         this.on('connect', () => {
-            // FIXME: que no se envie nada antes de que esto se ejecute.
+            // FIXME: La interfaz no debe permitir crear ni conectarse a un aula hasta que se reciba este mensaje
             console.log('Socket conectado');
         });
 
         this.on("disconnect", (reason) => {
-            // FIXME: Resolver desconexión de socket local
+            // Conexión rechazada
             console.log('Socket desconectado:', reason);
         });
 

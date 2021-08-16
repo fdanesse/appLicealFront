@@ -40,7 +40,6 @@ export class AppComponent  implements OnDestroy {
         this.userLogguedSubscription = this.userService.obsUserLoggued.subscribe(
             res => {
                 this.userLoggued = res;
-                //console.log(this.userLoggued);
             },
             err => {
                 this.userLoggued = null;

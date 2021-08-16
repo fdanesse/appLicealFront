@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { BehaviorSubject, Observable } from "rxjs";
 import { tap } from 'rxjs/operators';
+import jwt_decode from "jwt-decode"; //https://www.npmjs.com/package/jwt-decode
 
 import { Usuario } from '../models/user.model';
 
@@ -17,11 +18,27 @@ export class UsersService {
     public obsToken = this.obsT.asObservable();
     public obsUserLoggued = this.obsUL.asObservable();
 
+
     constructor(private httpClient: HttpClient) {
         const token = localStorage.getItem("Authorization");
-        if (token) {this.saveToken(token);}
         const UserLoggued = JSON.parse(localStorage.getItem("UserLoggued"));
-        if (UserLoggued) {this.saveUserLoggued(UserLoggued);}
+        if (token) {
+            try{
+                let decoded = jwt_decode(token, { header: false });
+                if (decoded['exp'] < Date.now() / 1000){ // Verificamos que el token no halla expirado
+                    this.logout();
+                } else {
+                    try{
+                        if (UserLoggued) {
+                            this.saveToken(token);
+                            this.saveUserLoggued(UserLoggued);
+                        }else{this.logout();}
+                    }
+                    catch{this.logout();}
+                }
+            }
+            catch{this.logout();}
+        } else {this.logout();}
     }
     
     getToken(): string{
