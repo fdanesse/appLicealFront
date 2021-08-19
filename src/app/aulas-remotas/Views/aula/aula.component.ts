@@ -13,7 +13,7 @@ export class AulaComponent implements OnInit, OnDestroy {
     private localvideo = undefined;
     private remoteVideo = undefined;
     private stream = undefined;
-    public aula: string;
+    public aula: Object = {};
     private peerConn: RTCPeerConnection;
 
     private newOfferSubscription: Subscription = null;
@@ -21,7 +21,8 @@ export class AulaComponent implements OnInit, OnDestroy {
     private newRespuestaSubscription: Subscription = null;
 
     constructor(private aulasSocketService: AulasRemotasSocket, private _route: ActivatedRoute) {
-        this.aula = this._route.snapshot.paramMap.get('aula');
+        this.aula['nombre'] = this._route.snapshot.paramMap.get('aula');
+        this.aula['id'] = this._route.snapshot.paramMap.get('id');
     }
 
     ngOnInit() {
@@ -34,6 +35,7 @@ export class AulaComponent implements OnInit, OnDestroy {
         this.crearRTCPeerConnection();
         this.obtenerStreamingLocal();
 
+        // Escucha evento track en la conexión,y setea la pista como remota
         this.peerConn.ontrack = ({track, streams}) => {
             track.onunmute = () => {
                 if (this.remoteVideo.srcObject) {return;}
@@ -42,31 +44,36 @@ export class AulaComponent implements OnInit, OnDestroy {
             };
         };
 
+        // Llamando, se crea y envía oferta
         this.peerConn.onnegotiationneeded = () => {
             this.peerConn.createOffer()
                 .then((offer) => {
                     return this.peerConn.setLocalDescription(offer);
                 })
                 .then(() => {
-                    this.aulasSocketService.enviarOferta(this.aula, this.peerConn.localDescription);;
+                    this.aulasSocketService.enviarOferta(this.aula, this.peerConn.localDescription);
                 })
                 .catch((reason) => {
                     console.log("onnegotiationneeded Error:", reason);
                 });
         };
 
+        // Llamada, se envían los candidatos
         this.peerConn.onicecandidate = (event) => {
-            this.aulasSocketService.enviarCandidato(event.candidate);
+            this.aulasSocketService.enviarCandidato(this.aula, event.candidate);
         }
 
     }
 
     configurarObservers(){
+        // Contestar llamada, escuchar ofertas y construir respuesta
         this.newOfferSubscription = this.aulasSocketService.newOffer.subscribe(
             offer => {
                 if (offer){
-                    console.log("Nueva oferta recibida...", offer);
-                    this.realizarRespuesta(offer);
+                    const {userId, sdp} = offer
+                    console.log("Nueva oferta recibida...", sdp);
+                    // FIXME: hay que crear una nueva conexión
+                    this.realizarRespuesta(sdp);
                 }
             },
             err => {
@@ -74,11 +81,13 @@ export class AulaComponent implements OnInit, OnDestroy {
             }
         )
 
+        // Llamar y contestar llamada, agregar candidatos recibidos
         this.newCandidateSubscription = this.aulasSocketService.newCandidate.subscribe(
             candidato => {
                 if (candidato){
+                    const {userId, ice} = candidato;
                     console.log("Nuevo candidato recibido...", candidato);
-                    this.peerConn.addIceCandidate(candidato);
+                    this.peerConn.addIceCandidate(ice);                    
                 }
             },
             err => {
@@ -86,11 +95,13 @@ export class AulaComponent implements OnInit, OnDestroy {
             }
         )
 
+        // Llamada, recibir respuestas
         this.newRespuestaSubscription = this.aulasSocketService.newRespuesta.subscribe(
             respuesta => {
                 if (respuesta){
-                    console.log("Nueva respuesta recibida...", respuesta);
-                    this.peerConn.setRemoteDescription(respuesta);
+                    const {userId, sdp} = respuesta;
+                    console.log("Nueva respuesta recibida...", sdp);
+                    this.peerConn.setRemoteDescription(sdp);
                 }
             },
             err => {
@@ -99,7 +110,9 @@ export class AulaComponent implements OnInit, OnDestroy {
         )
     }
 
+    // Contestar llamada, construir y enviar respuesta
     realizarRespuesta(offer) {
+        // FIXME: En la nueva conexión creada para esta oferta
         this.peerConn.setRemoteDescription(new RTCSessionDescription(offer))
             .then(() => {
                 return this.peerConn.createAnswer();
@@ -108,7 +121,7 @@ export class AulaComponent implements OnInit, OnDestroy {
                 return this.peerConn.setLocalDescription(answer);
             })
             .then((answer) => {
-                this.aulasSocketService.enviarRespuesta(this.peerConn.localDescription);
+                this.aulasSocketService.enviarRespuesta(this.aula, this.peerConn.localDescription);
             })
             .catch(this.UserMediaError);
     }

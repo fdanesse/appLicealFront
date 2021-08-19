@@ -3,7 +3,9 @@ import { BehaviorSubject } from "rxjs";
 
 // https://www.npmjs.com/package/ngx-socket-io
 import { Socket, SocketIoConfig } from 'ngx-socket-io';
+import jwt_decode from "jwt-decode"; //https://www.npmjs.com/package/jwt-decode
 
+const token = localStorage.getItem("Authorization");
 
 const config: SocketIoConfig = {
     url: 'http://localhost:8080', //'https://lit-fortress-19290.herokuapp.com',
@@ -14,9 +16,7 @@ const config: SocketIoConfig = {
         transports: ['websocket'],
         secure:true, 
         rejectUnauthorized: false,
-        query: {
-            token: localStorage.getItem("Authorization")
-        },
+        query: {token: token},
     }
 }
 
@@ -33,8 +33,13 @@ export class AulasRemotasSocket extends Socket{
     private obsNewRespuesta = new BehaviorSubject(null);
     public newRespuesta = this.obsNewRespuesta.asObservable();
 
+    private userId = undefined;
+
     constructor() {
         super(config);
+        
+        let decoded = jwt_decode(token, { header: false });
+        this.userId = decoded['id'];
 
         this.processEvents();
     }
@@ -76,16 +81,16 @@ export class AulasRemotasSocket extends Socket{
 
     }
 
-    public enviarRespuesta(localDescription){
-        this.emit('respuesta', localDescription);
+    public enviarRespuesta(aula, localDescription){
+        this.emit('respuesta', {'aula': aula, 'userId': this.userId, 'sdp': localDescription});
     }
 
     public enviarOferta(aula, localDescription){
-        this.emit('oferta', {'aula': aula, 'sdp': localDescription});
+        this.emit('oferta', {'aula': aula, 'userId': this.userId, 'sdp': localDescription});
     }
 
-    public enviarCandidato(candidato){
-        this.emit('candidato', candidato);
+    public enviarCandidato(aula, candidato){
+        this.emit('candidato', {'aula': aula, 'userId': this.userId, 'ice': candidato});
     }
 
     ngOnDestroy(){

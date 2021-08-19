@@ -9,7 +9,7 @@ import { AuthGuard } from '../auth/guards/auth.guard';
 const routes: Routes = [
     { path: '', component: AulasRemotasComponent, canActivate: [AuthGuard] },
     { path: 'aulasRemotas', component: AulasRemotasComponent, canActivate: [AuthGuard] },
-    { path: 'aula/:aula', component: AulaComponent, canActivate: [AuthGuard] },
+    { path: 'aula/:aula/:id', component: AulaComponent, canActivate: [AuthGuard] },
 ];
 
 @NgModule({
