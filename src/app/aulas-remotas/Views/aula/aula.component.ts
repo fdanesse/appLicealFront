@@ -3,6 +3,17 @@ import { AulasRemotasSocket } from '../../services/AulasRemotasSocket.service';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 
+/*
+class Conexion{
+    constructor(socketId, userId, tiempo){
+        this.socketId = socketId
+        this.userId = userId
+        this.tiempo = tiempo
+    }
+}
+*/
+
+
 @Component({
     selector: 'app-aula',
     templateUrl: './aula.component.html',
@@ -11,14 +22,18 @@ import { Subscription } from 'rxjs';
 export class AulaComponent implements OnInit, OnDestroy {
 
     private localvideo = undefined;
-    private remoteVideo = undefined;
     private stream = undefined;
+
     public aula: Object = {};
-    private peerConn: RTCPeerConnection;
+
+    // https://webrtc.github.io/samples/src/content/peerconnection/multiple/
+    // https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/multiple/js/main.js
+    private conexiones = [];
 
     private newOfferSubscription: Subscription = null;
     private newCandidateSubscription: Subscription = null;
     private newRespuestaSubscription: Subscription = null;
+    private newHelloSubscription: Subscription = null;
 
     constructor(private aulasSocketService: AulasRemotasSocket, private _route: ActivatedRoute) {
         this.aula['nombre'] = this._route.snapshot.paramMap.get('aula');
@@ -27,53 +42,56 @@ export class AulaComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.localvideo = document.getElementById('localVideo');
-        this.remoteVideo = document.getElementById('remoteVideo');
         this.localvideo.muted = true;
-        this.remoteVideo.muted = true;
 
-        this.configurarObservers();
-        this.crearRTCPeerConnection();
         this.obtenerStreamingLocal();
-
-        // Escucha evento track en la conexión,y setea la pista como remota
-        this.peerConn.ontrack = ({track, streams}) => {
-            track.onunmute = () => {
-                if (this.remoteVideo.srcObject) {return;}
-                console.log("Seteando video remoto...", track, streams);
-                this.remoteVideo.srcObject = streams[0];
-            };
-        };
-
-        // Llamando, se crea y envía oferta
-        this.peerConn.onnegotiationneeded = () => {
-            this.peerConn.createOffer()
-                .then((offer) => {
-                    return this.peerConn.setLocalDescription(offer);
-                })
-                .then(() => {
-                    this.aulasSocketService.enviarOferta(this.aula, this.peerConn.localDescription);
-                })
-                .catch((reason) => {
-                    console.log("onnegotiationneeded Error:", reason);
-                });
-        };
-
-        // Llamada, se envían los candidatos
-        this.peerConn.onicecandidate = (event) => {
-            this.aulasSocketService.enviarCandidato(this.aula, event.candidate);
-        }
-
     }
 
     configurarObservers(){
+        // Cuando alguien nos envía un saludo, le enviamos una oferta de conexión webRTC.
+        this.newHelloSubscription = this.aulasSocketService.newHello.subscribe(
+            conexion => {
+                if (conexion){
+                    let peerConn = this.newRTCPeerConnection();
+                    peerConn.ontrack = ({track, streams}) => {
+                        track.onunmute = () => {
+                            console.log("Pista Remota Recibida de:", conexion.socketId);
+                            let remoteVideo = <HTMLVideoElement>document.getElementById('remoteVideo');
+                            if (remoteVideo.srcObject) {return;}
+                            remoteVideo.srcObject = streams[0];
+                            remoteVideo.muted = true;
+                        };
+                    };
+                    conexion['peerconn'] = peerConn;
+                    this.conexiones.push(conexion);
+                    console.log("Dice Hello:", conexion);
+                    this.negociarConexion(conexion);
+                }
+            },
+            err => {
+                console.log("Error al recibir hello", err);
+            }
+        )
+
         // Contestar llamada, escuchar ofertas y construir respuesta
         this.newOfferSubscription = this.aulasSocketService.newOffer.subscribe(
             offer => {
                 if (offer){
-                    const {userId, sdp} = offer
-                    console.log("Nueva oferta recibida...", sdp);
-                    // FIXME: hay que crear una nueva conexión
-                    this.realizarRespuesta(sdp);
+                    const {conexionRemitente, sdp} = offer
+                    let peerConn = this.newRTCPeerConnection();
+                    peerConn.ontrack = ({track, streams}) => {
+                        track.onunmute = () => {
+                            console.log("Pista Remota Recibida de:", conexionRemitente.socketId);
+                            let remoteVideo = <HTMLVideoElement>document.getElementById('remoteVideo');
+                            if (remoteVideo.srcObject) {return;}
+                            remoteVideo.srcObject = streams[0];
+                            remoteVideo.muted = true;
+                        };
+                    };
+                    conexionRemitente['peerconn'] = peerConn;
+                    this.conexiones.push(conexionRemitente);
+                    console.log("Nueva oferta recibida de:", conexionRemitente.socketId);
+                    this.responder(conexionRemitente, sdp);
                 }
             },
             err => {
@@ -85,23 +103,25 @@ export class AulaComponent implements OnInit, OnDestroy {
         this.newCandidateSubscription = this.aulasSocketService.newCandidate.subscribe(
             candidato => {
                 if (candidato){
-                    const {userId, ice} = candidato;
-                    console.log("Nuevo candidato recibido...", candidato);
-                    this.peerConn.addIceCandidate(ice);                    
+                    const {remitente, ice} = candidato;
+                    let conexion = this.conexiones.find(elemento => elemento.socketId === remitente)
+                    console.log("Nuevo candidato recibido de:", remitente, candidato);
+                    conexion.peerconn.addIceCandidate(ice);
                 }
             },
             err => {
                 console.log("Error al recibir un candidato", err);
             }
         )
-
+        
         // Llamada, recibir respuestas
         this.newRespuestaSubscription = this.aulasSocketService.newRespuesta.subscribe(
             respuesta => {
                 if (respuesta){
-                    const {userId, sdp} = respuesta;
-                    console.log("Nueva respuesta recibida...", sdp);
-                    this.peerConn.setRemoteDescription(sdp);
+                    const {remitente, sdp} = respuesta;
+                    let conexion = this.conexiones.find(elemento => elemento.socketId === remitente)
+                    console.log("Nueva respuesta recibida:", remitente);
+                    conexion.peerconn.setRemoteDescription(sdp);
                 }
             },
             err => {
@@ -111,19 +131,42 @@ export class AulaComponent implements OnInit, OnDestroy {
     }
 
     // Contestar llamada, construir y enviar respuesta
-    realizarRespuesta(offer) {
-        // FIXME: En la nueva conexión creada para esta oferta
-        this.peerConn.setRemoteDescription(new RTCSessionDescription(offer))
+    responder(conexionRemitente, offer) {
+        conexionRemitente.peerconn.setRemoteDescription(new RTCSessionDescription(offer))
             .then(() => {
-                return this.peerConn.createAnswer();
+                return conexionRemitente.peerconn.createAnswer();
             })
             .then((answer) => {
-                return this.peerConn.setLocalDescription(answer);
+                return conexionRemitente.peerconn.setLocalDescription(answer);
             })
             .then((answer) => {
-                this.aulasSocketService.enviarRespuesta(this.aula, this.peerConn.localDescription);
+                console.log("Enviando Respuesta a:", conexionRemitente.socketId);
+                this.aulasSocketService.enviarRespuesta(conexionRemitente.socketId, conexionRemitente.peerconn.localDescription);
             })
             .catch(this.UserMediaError);
+    }
+   
+    negociarConexion(conexion){
+        // Llamando, se crea y envía oferta
+        conexion.peerconn.onnegotiationneeded = () => {
+            conexion.peerconn.createOffer()
+                .then((offer) => {
+                    return conexion.peerconn.setLocalDescription(offer);
+                })
+                .then(() => {
+                    console.log("Enviando Oferta a:", conexion.socketId)
+                    this.aulasSocketService.enviarOferta(conexion.socketId, conexion.peerconn.localDescription);
+                })
+                .catch((reason) => {
+                    console.log("onnegotiationneeded Error:", reason);
+                });
+        };
+
+        // Llamada, se envían los candidatos
+        conexion.peerconn.onicecandidate = (event) => {
+            console.log("Enviando Candidato a:", conexion.socketId)
+            this.aulasSocketService.enviarCandidato(conexion.socketId, event.candidate);
+        }
     }
 
     obtenerStreamingLocal(){
@@ -132,14 +175,15 @@ export class AulaComponent implements OnInit, OnDestroy {
                 .then(stream => {
                     this.stream = stream;
                     this.localvideo.srcObject = stream;
-                    //FIXME: Leer => https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/addStream
-                    this.stream.getTracks().forEach(track => {this.peerConn.addTrack(track, this.stream);});
+                    
+                    this.configurarObservers();
+                    this.aulasSocketService.enviarhello(this.aula);
                 })
                 .catch(this.UserMediaError);
         }else {this.UserMediaError;}
     }
 
-    crearRTCPeerConnection(){
+    newRTCPeerConnection(): RTCPeerConnection{
         const configuration = {
             iceServers: [{
                 "urls": [ 
@@ -157,32 +201,35 @@ export class AulaComponent implements OnInit, OnDestroy {
                     "stun:stun.voipstunt.com"]
             }]
         };
-        this.peerConn = new RTCPeerConnection(configuration);
+        let peerConn = new RTCPeerConnection(configuration);
+        this.stream.getTracks().forEach(track => {peerConn.addTrack(track, this.stream);});
+
+        return peerConn;
     }
 
 
 
 
 
-
-
+    
     UserMediaError(error) {
         switch(error.name) {
             case "NotFoundError":
                 alert("No se encontró la cámara o el micrófono.");
                 break;
             case "SecurityError":
-                alert("Error de Seguridad" + error.message);
+                alert("Error de Seguridad: " + error.message);
             case "PermissionDeniedError":
-                alert("Usuario canceló la llamada" + error.message);
+                alert("Usuario canceló la llamada: " + error.message);
                 break;
             default:
-                alert("Error de acceso a cámara o micrófono " + error.message);
+                alert("Error de acceso a cámara o micrófono: " + error.message);
                 break;
         }
-        this.closeVideoCall();
+        //this.closeVideoCall();
     }
-
+    
+   /*
     closeVideoCall() {
         if (this.peerConn) {
             this.peerConn.ontrack = null;
@@ -211,11 +258,13 @@ export class AulaComponent implements OnInit, OnDestroy {
         this.localvideo.removeAttribute("src");
         this.remoteVideo.removeAttribute("srcObject");
     }
-
+    */
+    
     ngOnDestroy(){
         if (this.newOfferSubscription) this.newOfferSubscription.unsubscribe();
         if (this.newCandidateSubscription) this.newCandidateSubscription.unsubscribe();
         if (this.newRespuestaSubscription) this.newRespuestaSubscription.unsubscribe();
-        this.peerConn.close();
+        if (this.newHelloSubscription) this.newHelloSubscription.unsubscribe();
+        //this.peerConn.close();
     }
 }

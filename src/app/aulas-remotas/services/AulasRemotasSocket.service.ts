@@ -33,6 +33,9 @@ export class AulasRemotasSocket extends Socket{
     private obsNewRespuesta = new BehaviorSubject(null);
     public newRespuesta = this.obsNewRespuesta.asObservable();
 
+    private obsNewHello = new BehaviorSubject(null);
+    public newHello = this.obsNewHello.asObservable();
+
     private userId = undefined;
 
     constructor() {
@@ -44,6 +47,11 @@ export class AulasRemotasSocket extends Socket{
         this.processEvents();
     }
 
+    public enviarhello(aula){
+        // Cuando un usuario entra a un aula saluda para que todos le envíen una oferta de conexión webRTC.
+        this.emit('hello', aula);
+    }
+
     processEvents(){
         this.on('connect', () => {
             // FIXME: La interfaz no debe permitir crear ni conectarse a un aula hasta que se reciba este mensaje
@@ -51,7 +59,7 @@ export class AulasRemotasSocket extends Socket{
         });
 
         this.on("disconnect", (reason) => {
-            // Conexión rechazada
+            // FIXME: Conexión rechazada. Resolver que hacer en el Frontend
             console.log('Socket desconectado:', reason);
         });
 
@@ -62,6 +70,10 @@ export class AulasRemotasSocket extends Socket{
         
 
 
+        this.on("hello", (conexion) => {
+            this.obsNewHello.next(conexion);
+        });
+        
         this.on("oferta", (data) => {
             this.obsNewOffer.next(data);
         });
@@ -73,26 +85,26 @@ export class AulasRemotasSocket extends Socket{
         this.on("candidato", (data) => {
             this.obsNewCandidate.next(data);
         });
-
+        /*
         // FIXME: Completar tarea
         this.on("desconectado", (socketId) => {
             console.log('Usuario desconectado', socketId);
         });
-
+        */
     }
 
-    public enviarRespuesta(aula, localDescription){
-        this.emit('respuesta', {'aula': aula, 'userId': this.userId, 'sdp': localDescription});
+    public enviarRespuesta(socketIdDestino, localDescription){
+        this.emit('respuesta', {socketIdDestino: socketIdDestino, sdp: localDescription});
     }
 
-    public enviarOferta(aula, localDescription){
-        this.emit('oferta', {'aula': aula, 'userId': this.userId, 'sdp': localDescription});
+    public enviarOferta(socketIdDestino, localDescription){
+        this.emit('oferta', {socketIdDestino: socketIdDestino, sdp: localDescription});
     }
-
-    public enviarCandidato(aula, candidato){
-        this.emit('candidato', {'aula': aula, 'userId': this.userId, 'ice': candidato});
+    
+    public enviarCandidato(socketIdDestino, candidato){
+        this.emit('candidato', {socketIdDestino: socketIdDestino, ice: candidato});
     }
-
+    
     ngOnDestroy(){
     }
 

@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AulasRemotasSocket } from '../../services/AulasRemotasSocket.service';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 
 
@@ -13,7 +12,7 @@ export class AulasRemotasComponent implements OnInit {
   
     public classRoomForm: FormGroup;
 
-    constructor(private aulasSocketService: AulasRemotasSocket, public router: Router) { 
+    constructor(public router: Router) { 
     }
 
     ngOnInit() {
