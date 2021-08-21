@@ -50,22 +50,13 @@ export class AulaComponent implements OnInit, OnDestroy {
     configurarObservers(){
         // Cuando alguien nos envía un saludo, le enviamos una oferta de conexión webRTC.
         this.newHelloSubscription = this.aulasSocketService.newHello.subscribe(
-            conexion => {
-                if (conexion){
+            conexionRemitente => {
+                if (conexionRemitente){
                     let peerConn = this.newRTCPeerConnection();
-                    peerConn.ontrack = ({track, streams}) => {
-                        track.onunmute = () => {
-                            console.log("Pista Remota Recibida de:", conexion.socketId);
-                            let remoteVideo = <HTMLVideoElement>document.getElementById('remoteVideo');
-                            if (remoteVideo.srcObject) {return;}
-                            remoteVideo.srcObject = streams[0];
-                            remoteVideo.muted = true;
-                        };
-                    };
-                    conexion['peerconn'] = peerConn;
-                    this.conexiones.push(conexion);
-                    console.log("Dice Hello:", conexion);
-                    this.negociarConexion(conexion);
+                    this.negociarConexion(peerConn, conexionRemitente)
+                    conexionRemitente['peerconn'] = peerConn;
+                    this.conexiones.push(conexionRemitente);
+                    console.log("Dice Hello:", conexionRemitente);
                 }
             },
             err => {
@@ -79,15 +70,7 @@ export class AulaComponent implements OnInit, OnDestroy {
                 if (offer){
                     const {conexionRemitente, sdp} = offer
                     let peerConn = this.newRTCPeerConnection();
-                    peerConn.ontrack = ({track, streams}) => {
-                        track.onunmute = () => {
-                            console.log("Pista Remota Recibida de:", conexionRemitente.socketId);
-                            let remoteVideo = <HTMLVideoElement>document.getElementById('remoteVideo');
-                            if (remoteVideo.srcObject) {return;}
-                            remoteVideo.srcObject = streams[0];
-                            remoteVideo.muted = true;
-                        };
-                    };
+                    this.negociarConexion(peerConn, conexionRemitente)
                     conexionRemitente['peerconn'] = peerConn;
                     this.conexiones.push(conexionRemitente);
                     console.log("Nueva oferta recibida de:", conexionRemitente.socketId);
@@ -146,26 +129,32 @@ export class AulaComponent implements OnInit, OnDestroy {
             .catch(this.UserMediaError);
     }
    
-    negociarConexion(conexion){
-        // Llamando, se crea y envía oferta
-        conexion.peerconn.onnegotiationneeded = () => {
-            conexion.peerconn.createOffer()
+    negociarConexion(peerConn, conexionRemitente){
+        peerConn.ontrack = ({track, streams}) => {
+            track.onunmute = () => {
+                console.log("Pista Remota Recibida de:", conexionRemitente.socketId);
+                let remoteVideo = <HTMLVideoElement>document.getElementById('remoteVideo');
+                if (remoteVideo.srcObject) {return;}
+                remoteVideo.srcObject = streams[0];
+                remoteVideo.muted = true;
+            };
+        };
+        peerConn.onnegotiationneeded = () => {
+            peerConn.createOffer()
                 .then((offer) => {
-                    return conexion.peerconn.setLocalDescription(offer);
+                    return peerConn.setLocalDescription(offer);
                 })
                 .then(() => {
-                    console.log("Enviando Oferta a:", conexion.socketId)
-                    this.aulasSocketService.enviarOferta(conexion.socketId, conexion.peerconn.localDescription);
+                    console.log("Enviando Oferta a:", conexionRemitente.socketId)
+                    this.aulasSocketService.enviarOferta(conexionRemitente.socketId, peerConn.localDescription);
                 })
                 .catch((reason) => {
                     console.log("onnegotiationneeded Error:", reason);
                 });
         };
-
-        // Llamada, se envían los candidatos
-        conexion.peerconn.onicecandidate = (event) => {
-            console.log("Enviando Candidato a:", conexion.socketId)
-            this.aulasSocketService.enviarCandidato(conexion.socketId, event.candidate);
+        peerConn.onicecandidate = (event) => {
+            console.log("Enviando Candidato a:", conexionRemitente.socketId)
+            this.aulasSocketService.enviarCandidato(conexionRemitente.socketId, event.candidate);
         }
     }
 
