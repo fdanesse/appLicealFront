@@ -23,12 +23,11 @@ export class AulaComponent implements OnInit, OnDestroy {
 
     private localvideo = undefined;
     private stream = undefined;
-
     public aula: Object = {};
 
     // https://webrtc.github.io/samples/src/content/peerconnection/multiple/
     // https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/multiple/js/main.js
-    private conexiones = [];
+    public conexiones = [];
 
     private newOfferSubscription: Subscription = null;
     private newCandidateSubscription: Subscription = null;
@@ -36,14 +35,14 @@ export class AulaComponent implements OnInit, OnDestroy {
     private newHelloSubscription: Subscription = null;
 
     constructor(private aulasSocketService: AulasRemotasSocket, private _route: ActivatedRoute) {
+
         this.aula['nombre'] = this._route.snapshot.paramMap.get('aula');
         this.aula['id'] = this._route.snapshot.paramMap.get('id');
     }
 
     ngOnInit() {
-        this.localvideo = document.getElementById('localVideo');
+        this.localvideo = <HTMLVideoElement>document.getElementById('localVideo');
         this.localvideo.muted = true;
-
         this.obtenerStreamingLocal();
     }
 
@@ -54,9 +53,9 @@ export class AulaComponent implements OnInit, OnDestroy {
                 if (conexionRemitente){
                     let peerConn = this.newRTCPeerConnection();
                     this.negociarConexion(peerConn, conexionRemitente)
-                    conexionRemitente['peerconn'] = peerConn;
+                    conexionRemitente['peerconn'] = peerConn as RTCPeerConnection;
                     this.conexiones.push(conexionRemitente);
-                    console.log("Dice Hello:", conexionRemitente);
+                    //console.log("Dice Hello:", conexionRemitente);
                 }
             },
             err => {
@@ -71,9 +70,9 @@ export class AulaComponent implements OnInit, OnDestroy {
                     const {conexionRemitente, sdp} = offer
                     let peerConn = this.newRTCPeerConnection();
                     this.negociarConexion(peerConn, conexionRemitente)
-                    conexionRemitente['peerconn'] = peerConn;
+                    conexionRemitente['peerconn'] = peerConn as RTCPeerConnection;
                     this.conexiones.push(conexionRemitente);
-                    console.log("Nueva oferta recibida de:", conexionRemitente.socketId);
+                    //console.log("Nueva oferta recibida de:", conexionRemitente.socketId);
                     this.responder(conexionRemitente, sdp);
                 }
             },
@@ -88,7 +87,7 @@ export class AulaComponent implements OnInit, OnDestroy {
                 if (candidato){
                     const {remitente, ice} = candidato;
                     let conexion = this.conexiones.find(elemento => elemento.socketId === remitente)
-                    console.log("Nuevo candidato recibido de:", remitente, candidato);
+                    //console.log("Nuevo candidato recibido de:", remitente, candidato);
                     conexion.peerconn.addIceCandidate(ice);
                 }
             },
@@ -103,7 +102,7 @@ export class AulaComponent implements OnInit, OnDestroy {
                 if (respuesta){
                     const {remitente, sdp} = respuesta;
                     let conexion = this.conexiones.find(elemento => elemento.socketId === remitente)
-                    console.log("Nueva respuesta recibida:", remitente);
+                    //console.log("Nueva respuesta recibida:", remitente);
                     conexion.peerconn.setRemoteDescription(sdp);
                 }
             },
@@ -123,7 +122,7 @@ export class AulaComponent implements OnInit, OnDestroy {
                 return conexionRemitente.peerconn.setLocalDescription(answer);
             })
             .then((answer) => {
-                console.log("Enviando Respuesta a:", conexionRemitente.socketId);
+                //console.log("Enviando Respuesta a:", conexionRemitente.socketId);
                 this.aulasSocketService.enviarRespuesta(conexionRemitente.socketId, conexionRemitente.peerconn.localDescription);
             })
             .catch(this.UserMediaError);
@@ -132,10 +131,12 @@ export class AulaComponent implements OnInit, OnDestroy {
     negociarConexion(peerConn, conexionRemitente){
         peerConn.ontrack = ({track, streams}) => {
             track.onunmute = () => {
-                console.log("Pista Remota Recibida de:", conexionRemitente.socketId);
-                let remoteVideo = <HTMLVideoElement>document.getElementById('remoteVideo');
+                //console.log("Pista Remota Recibida de:", conexionRemitente.socketId);
+                let conexion = this.conexiones.find(elemento => elemento.socketId === conexionRemitente.socketId);
+                conexion['src'] = streams[0] as MediaStream;
+                let remoteVideo = <HTMLVideoElement>document.getElementById(conexion.socketId);                
                 if (remoteVideo.srcObject) {return;}
-                remoteVideo.srcObject = streams[0];
+                remoteVideo.srcObject = streams[0] as MediaStream;
                 remoteVideo.muted = true;
             };
         };
@@ -145,7 +146,7 @@ export class AulaComponent implements OnInit, OnDestroy {
                     return peerConn.setLocalDescription(offer);
                 })
                 .then(() => {
-                    console.log("Enviando Oferta a:", conexionRemitente.socketId)
+                    //console.log("Enviando Oferta a:", conexionRemitente.socketId)
                     this.aulasSocketService.enviarOferta(conexionRemitente.socketId, peerConn.localDescription);
                 })
                 .catch((reason) => {
@@ -153,7 +154,7 @@ export class AulaComponent implements OnInit, OnDestroy {
                 });
         };
         peerConn.onicecandidate = (event) => {
-            console.log("Enviando Candidato a:", conexionRemitente.socketId)
+            //console.log("Enviando Candidato a:", conexionRemitente.socketId)
             this.aulasSocketService.enviarCandidato(conexionRemitente.socketId, event.candidate);
         }
     }
@@ -164,7 +165,7 @@ export class AulaComponent implements OnInit, OnDestroy {
                 .then(stream => {
                     this.stream = stream;
                     this.localvideo.srcObject = stream;
-                    
+
                     this.configurarObservers();
                     this.aulasSocketService.enviarhello(this.aula);
                 })

@@ -8,12 +8,14 @@ import { AulasRemotasRoutingModule } from './aulas-remotas-routing.module';
 import { AulasRemotasSocket } from './services/AulasRemotasSocket.service';
 import { SocketIoModule } from 'ngx-socket-io';
 import { AulaComponent } from './Views/aula/aula.component';
+import { VideoComponent } from './Componentes/video/video.component';
 
 
 @NgModule({
     declarations: [
         AulasRemotasComponent,
-        AulaComponent],
+        AulaComponent,
+        VideoComponent],
     imports: [
         CommonModule,
         ReactiveFormsModule,
