@@ -3,7 +3,7 @@ import { BehaviorSubject } from "rxjs";
 
 // https://www.npmjs.com/package/ngx-socket-io
 import { Socket, SocketIoConfig } from 'ngx-socket-io';
-import jwt_decode from "jwt-decode"; //https://www.npmjs.com/package/jwt-decode
+//import jwt_decode from "jwt-decode"; //https://www.npmjs.com/package/jwt-decode
 
 const token = localStorage.getItem("Authorization");
 
@@ -36,13 +36,16 @@ export class AulasRemotasSocket extends Socket{
     private obsNewHello = new BehaviorSubject(null);
     public newHello = this.obsNewHello.asObservable();
 
-    private userId = undefined;
+    private obsDesconectado = new BehaviorSubject(null);
+    public Desconectado = this.obsDesconectado.asObservable();
+
+    //private userId = undefined;
 
     constructor() {
         super(config);
         
-        let decoded = jwt_decode(token, { header: false });
-        this.userId = decoded['id'];
+        //let decoded = jwt_decode(token, { header: false });
+        //this.userId = decoded['id'];
 
         this.processEvents();
     }
@@ -85,12 +88,10 @@ export class AulasRemotasSocket extends Socket{
         this.on("candidato", (data) => {
             this.obsNewCandidate.next(data);
         });
-        /*
-        // FIXME: Completar tarea
-        this.on("desconectado", (socketId) => {
-            console.log('Usuario desconectado', socketId);
+
+        this.on("desconectado", (data) => {
+            this.obsDesconectado.next(data);
         });
-        */
     }
 
     public enviarRespuesta(socketIdDestino, localDescription){

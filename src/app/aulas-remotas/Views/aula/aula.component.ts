@@ -9,6 +9,9 @@ class Conexion{
         this.socketId = socketId
         this.userId = userId
         this.tiempo = tiempo
+
+        this.peerconn: RTCPeerConnection
+        this.src: MediaStream
     }
 }
 */
@@ -33,6 +36,7 @@ export class AulaComponent implements OnInit, OnDestroy {
     private newCandidateSubscription: Subscription = null;
     private newRespuestaSubscription: Subscription = null;
     private newHelloSubscription: Subscription = null;
+    private newDesconectadoSubscription: Subscription = null;
 
     constructor(private aulasSocketService: AulasRemotasSocket, private _route: ActivatedRoute) {
 
@@ -47,6 +51,29 @@ export class AulaComponent implements OnInit, OnDestroy {
     }
 
     configurarObservers(){
+        this.newDesconectadoSubscription = this.aulasSocketService.Desconectado.subscribe(
+            socketId => {
+                if (socketId){
+                    let conexion = this.conexiones.find(elemento => elemento.socketId === socketId);
+                    conexion.peerconn.ontrack = null;
+                    //conexion.peerconn.onremovetrack = null;
+                    //conexion.peerconn.onremovestream = null;
+                    conexion.peerconn.onicecandidate = null;
+                    conexion.peerconn.oniceconnectionstatechange = null;
+                    conexion.peerconn.onsignalingstatechange = null;
+                    conexion.peerconn.onicegatheringstatechange = null;
+                    conexion.peerconn.onnegotiationneeded = null;
+                    conexion.peerconn.close();
+                    let pos = this.conexiones.indexOf(conexion);
+                    let eliminado = this.conexiones.splice(pos, 1);
+                    //console.log("Usuario desconectado:", socketId);
+                }
+            },
+            err => {
+                console.log("Error al recibir hello", err);
+            }
+        )
+
         // Cuando alguien nos envía un saludo, le enviamos una oferta de conexión webRTC.
         this.newHelloSubscription = this.aulasSocketService.newHello.subscribe(
             conexionRemitente => {
@@ -165,7 +192,6 @@ export class AulaComponent implements OnInit, OnDestroy {
                 .then(stream => {
                     this.stream = stream;
                     this.localvideo.srcObject = stream;
-
                     this.configurarObservers();
                     this.aulasSocketService.enviarhello(this.aula);
                 })
@@ -197,11 +223,6 @@ export class AulaComponent implements OnInit, OnDestroy {
         return peerConn;
     }
 
-
-
-
-
-    
     UserMediaError(error) {
         switch(error.name) {
             case "NotFoundError":
@@ -216,45 +237,25 @@ export class AulaComponent implements OnInit, OnDestroy {
                 alert("Error de acceso a cámara o micrófono: " + error.message);
                 break;
         }
-        //this.closeVideoCall();
     }
-    
-   /*
-    closeVideoCall() {
-        if (this.peerConn) {
-            this.peerConn.ontrack = null;
-            //this.peerConn.onremovetrack = null;
-            //this.peerConn.onremovestream = null;
-            this.peerConn.onicecandidate = null;
-            this.peerConn.oniceconnectionstatechange = null;
-            this.peerConn.onsignalingstatechange = null;
-            this.peerConn.onicegatheringstatechange = null;
-            this.peerConn.onnegotiationneeded = null;
-        
-            if (this.remoteVideo.srcObject) {
-                this.remoteVideo.srcObject.getTracks().forEach(track => track.stop());
-            }
-        
-            if (this.localvideo.srcObject) {
-                this.localvideo.srcObject.getTracks().forEach(track => track.stop());
-            }
-        
-            this.peerConn.close();
-            this.peerConn = null;
-        }
-      
-        this.remoteVideo.removeAttribute("src");
-        this.remoteVideo.removeAttribute("srcObject");
-        this.localvideo.removeAttribute("src");
-        this.remoteVideo.removeAttribute("srcObject");
-    }
-    */
     
     ngOnDestroy(){
         if (this.newOfferSubscription) this.newOfferSubscription.unsubscribe();
         if (this.newCandidateSubscription) this.newCandidateSubscription.unsubscribe();
         if (this.newRespuestaSubscription) this.newRespuestaSubscription.unsubscribe();
         if (this.newHelloSubscription) this.newHelloSubscription.unsubscribe();
-        //this.peerConn.close();
+        if (this.newDesconectadoSubscription) this.newDesconectadoSubscription.unsubscribe();
+        this.conexiones.forEach(conexion => {
+            conexion.peerconn.ontrack = null;
+            //conexion.peerconn.onremovetrack = null;
+            //conexion.peerconn.onremovestream = null;
+            conexion.peerconn.onicecandidate = null;
+            conexion.peerconn.oniceconnectionstatechange = null;
+            conexion.peerconn.onsignalingstatechange = null;
+            conexion.peerconn.onicegatheringstatechange = null;
+            conexion.peerconn.onnegotiationneeded = null;
+            conexion.peerconn.close();
+        })
+        this.conexiones = [];
     }
 }
