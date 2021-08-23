@@ -7,6 +7,8 @@ import { passwordValidator } from "./passwordValidator";
 
 import { UsersService } from '../../Services/users.service';
 
+import { faCamera } from '@fortawesome/free-solid-svg-icons';
+
 
 @Component({
     selector: 'app-registro',
@@ -15,6 +17,8 @@ import { UsersService } from '../../Services/users.service';
 })
 export class RegistroComponent implements OnInit, OnDestroy {
 
+    faCamera = faCamera;
+    
     public registroForm: FormGroup;
     private subs: Subscription = null;
     public err: String = "";

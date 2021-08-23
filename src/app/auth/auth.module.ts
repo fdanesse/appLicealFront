@@ -13,6 +13,8 @@ import { AuthRoutingModule } from './auth-routing.module';
 //import { AuthGuard } from './guards/auth.guard';
 //import { NoauthGuard } from './guards/noauth.guard';
 
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+
 
 @NgModule({
     declarations: [
@@ -24,7 +26,8 @@ import { AuthRoutingModule } from './auth-routing.module';
         CommonModule,
         ReactiveFormsModule,
         //HttpClientModule,
-        AuthRoutingModule
+        AuthRoutingModule,
+        FontAwesomeModule,
     ],
     //providers: [UsersService, AuthGuard, NoauthGuard]
 })

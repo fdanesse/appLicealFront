@@ -135,6 +135,8 @@ video, canvas {
 }
 
 #btnpicture {
+    width: 40px;
+    height: 40px;
     position: absolute;
     top: 0px;
     right: 0px;
@@ -152,7 +154,6 @@ video, canvas {
     color: red;
     font-size: 22px;
 }
-
 
 @media(max-width:767px){
     form{

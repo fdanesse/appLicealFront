@@ -7,12 +7,17 @@ import { Subscription } from 'rxjs';
 
 import { UsersService } from '../../Services/users.service';
 
+import { faCamera } from '@fortawesome/free-solid-svg-icons';
+
+
 @Component({
     selector: 'app-perfil',
     templateUrl: './perfil.component.html',
     styleUrls: ['./perfil.component.css']
 })
 export class PerfilComponent implements OnInit, OnDestroy {
+
+    faCamera = faCamera;
 
     public registroForm: FormGroup;
     public err: String = "";

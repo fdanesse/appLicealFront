@@ -1,7 +1,11 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from "@angular/common/http";
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'; // https://www.npmjs.com/package/@fortawesome/angular-fontawesome
+
+// https://www.npmjs.com/package/@fortawesome/angular-fontawesome
+// https://github.com/FortAwesome/angular-fontawesome/blob/HEAD/docs/usage/icon-library.md#using-the-icon-library
+// https://github.com/FortAwesome/angular-fontawesome/blob/HEAD/docs/usage/features.md
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'; 
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
