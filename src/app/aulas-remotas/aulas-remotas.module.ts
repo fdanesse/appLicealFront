@@ -10,6 +10,8 @@ import { SocketIoModule } from 'ngx-socket-io';
 import { AulaComponent } from './Views/aula/aula.component';
 import { VideoComponent } from './Componentes/video/video.component';
 
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+
 
 @NgModule({
     declarations: [
@@ -21,6 +23,7 @@ import { VideoComponent } from './Componentes/video/video.component';
         ReactiveFormsModule,
         AulasRemotasRoutingModule,
         SocketIoModule,
+        FontAwesomeModule,
     ],
     providers: [AulasRemotasSocket], //AuthGuard
 })

@@ -1,4 +1,4 @@
-<div id='videogrid'>
-    <video id="localVideo" autoplay playsinline controls="false" muted></video>
-    <app-video *ngFor="let item of conexiones" [conexion]=item></app-video>
+<div class="container-fluid">
+    <app-video _id='localVideo'></app-video>
+    <app-video *ngFor="let item of conexiones" [_id]=item.socketId></app-video>
 </div>

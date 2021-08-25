@@ -1,5 +1,32 @@
-video {
-    margin: 10px;
-    width: 300px;
-    height: 300px;
+.card {
+    margin: 0px 0px 0px 0px;
+    position: relative;
+    padding: 5px;
+    display: inline-block;
+    box-shadow: 0.2em 0.2em 0.2em rgba(0, 0, 0, 0.9);
+    background-color: grey;
+}
+
+.card-header {
+    background-color: grey;
+    color: white;
+}
+
+.card-body {
+    margin: 0px;
+    padding: 0px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+}
+
+.btnCustom {
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    margin: 2px;
+    float: right;
 }

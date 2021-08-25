@@ -1,12 +1,9 @@
-#videogrid {
-    margin-top: 90px;
+.container-fluid {
+    margin: 0;
+    padding: 10px;
+    padding-top: 95px;
 }
 
-video {
-    margin: 10px;
-    visibility:visible;
-    width: 300px;
-    height: 300px;
-    /*float: left;*/
-    border: 1px solid black;
+app-video {
+    margin: 5px;
 }

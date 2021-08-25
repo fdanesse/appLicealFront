@@ -1,4 +1,6 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
+
+import { faMicrophoneAlt, faMicrophoneAltSlash, faVideo, faVideoSlash } from '@fortawesome/free-solid-svg-icons';
 
 
 @Component({
@@ -6,12 +8,24 @@ import { Component, OnInit, Input } from '@angular/core';
     templateUrl: './video.component.html',
     styleUrls: ['./video.component.css']
 })
-export class VideoComponent implements OnInit {
+export class VideoComponent implements OnInit, AfterViewInit {
 
-    @Input() public conexion;
+    faVideo = faVideo;
+    faVideoSlash = faVideoSlash;
+    faMicrophoneAlt = faMicrophoneAlt;
+    faMicrophoneAltSlash = faMicrophoneAltSlash;
 
-    constructor() { }
+    @ViewChild('video', {static: true}) private videoWidget: ElementRef;
+    @Input() public _id;
+
+    constructor() {}
 
     ngOnInit() {}
 
+    setStreaming(stream: MediaStream) {
+        this.videoWidget.nativeElement.srcObject = stream;
+        this.videoWidget.nativeElement.muted = true;        
+    }
+
+    ngAfterViewInit() { }
 }

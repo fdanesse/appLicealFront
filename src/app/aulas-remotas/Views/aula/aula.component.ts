@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
 import { AulasRemotasSocket } from '../../services/AulasRemotasSocket.service';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { VideoComponent } from '../../Componentes/video/video.component';
 
 /*
 class Conexion{
@@ -22,9 +23,10 @@ class Conexion{
     templateUrl: './aula.component.html',
     styleUrls: ['./aula.component.css']
 })
-export class AulaComponent implements OnInit, OnDestroy {
+export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
 
-    private localvideo = undefined;
+    @ViewChildren(VideoComponent) private videos: QueryList<VideoComponent>;
+    private localVideoWidget: VideoComponent;
     private stream = undefined;
     public aula: Object = {};
 
@@ -37,17 +39,21 @@ export class AulaComponent implements OnInit, OnDestroy {
     private newRespuestaSubscription: Subscription = null;
     private newHelloSubscription: Subscription = null;
     private newDesconectadoSubscription: Subscription = null;
+    private newVideoSubscription: Subscription = null;
 
     constructor(private aulasSocketService: AulasRemotasSocket, private _route: ActivatedRoute) {
-
         this.aula['nombre'] = this._route.snapshot.paramMap.get('aula');
         this.aula['id'] = this._route.snapshot.paramMap.get('id');
     }
 
-    ngOnInit() {
-        this.localvideo = <HTMLVideoElement>document.getElementById('localVideo');
-        this.localvideo.muted = true;
+    ngAfterViewInit () {
+        this.newVideoSubscription = this.videos.changes.subscribe(
+            (videos: Array<VideoComponent>) => {console.log("nuevo video:", this.videos)});
+        this.localVideoWidget = this.videos.find(video => video._id === 'localVideo');
         this.obtenerStreamingLocal();
+    }
+    
+    ngOnInit() {
     }
 
     configurarObservers(){
@@ -161,10 +167,8 @@ export class AulaComponent implements OnInit, OnDestroy {
                 //console.log("Pista Remota Recibida de:", conexionRemitente.socketId);
                 let conexion = this.conexiones.find(elemento => elemento.socketId === conexionRemitente.socketId);
                 conexion['src'] = streams[0] as MediaStream;
-                let remoteVideo = <HTMLVideoElement>document.getElementById(conexion.socketId);                
-                if (remoteVideo.srcObject) {return;}
-                remoteVideo.srcObject = streams[0] as MediaStream;
-                remoteVideo.muted = true;
+                let remoteVideo = this.videos.find(video => video._id === conexion.socketId);
+                remoteVideo.setStreaming(streams[0] as MediaStream);
             };
         };
         peerConn.onnegotiationneeded = () => {
@@ -191,7 +195,7 @@ export class AulaComponent implements OnInit, OnDestroy {
             navigator.mediaDevices.getUserMedia({video: {width:300, height: 300}, audio: true})
                 .then(stream => {
                     this.stream = stream;
-                    this.localvideo.srcObject = stream;
+                    this.localVideoWidget.setStreaming(stream as MediaStream);
                     this.configurarObservers();
                     this.aulasSocketService.enviarhello(this.aula);
                 })
@@ -245,6 +249,7 @@ export class AulaComponent implements OnInit, OnDestroy {
         if (this.newRespuestaSubscription) this.newRespuestaSubscription.unsubscribe();
         if (this.newHelloSubscription) this.newHelloSubscription.unsubscribe();
         if (this.newDesconectadoSubscription) this.newDesconectadoSubscription.unsubscribe();
+        if (this.newVideoSubscription) this.newVideoSubscription.unsubscribe();
         this.conexiones.forEach(conexion => {
             conexion.peerconn.ontrack = null;
             //conexion.peerconn.onremovetrack = null;

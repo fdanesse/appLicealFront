@@ -1,3 +1,18 @@
-<div>
-    <video autoplay playsinline controls="false" muted id="{{ conexion.socketId }}"></video>
+<div class="card">
+    <h3 class="card-header text-center">usuario</h3>
+    <video class='card-body' autoplay playsinline muted id="{{ _id }}" #video></video>
+    <div class="footer">
+        <button type="button" class="btn btn-sm btn-success btnCustom"> <!--(click)="capture()"-->
+            <fa-icon [icon]="faMicrophoneAltSlash" class="icon" size="lg"></fa-icon>
+        </button>
+        <button type="button" class="btn btn-sm btn-success btnCustom">
+            <fa-icon [icon]="faMicrophoneAlt" class="icon" size="lg"></fa-icon>
+        </button>
+        <button type="button" class="btn btn-sm btn-success btnCustom">
+            <fa-icon [icon]="faVideo" class="icon" size="lg"></fa-icon>
+        </button>
+        <button type="button" class="btn btn-sm btn-success btnCustom">
+            <fa-icon [icon]="faVideoSlash" class="icon" size="lg"></fa-icon>
+        </button>
+    </div>
 </div>
