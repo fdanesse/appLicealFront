@@ -1,4 +1,4 @@
 <div class="container-fluid">
-    <app-video _id='localVideo'></app-video>
-    <app-video *ngFor="let item of conexiones" [_id]=item.socketId></app-video>
+    <app-video _id='localVideo' [usuario]="'usuario'" (cambioTracks)="onCambioTracks($event)"></app-video>
+    <app-video *ngFor="let item of conexiones" [_id]=item.socketId [usuario]="'usuario'" (cambioTracks)="onCambioTracks($event)"></app-video>
 </div>

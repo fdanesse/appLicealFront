@@ -10,7 +10,7 @@ import { Usuario } from '../models/user.model';
 @Injectable({providedIn: 'root'})  // Quitandolo solo se accedería desde modulo hijo (auth.module en este caso)
 export class UsersService {
 
-    private url: string = 'http://localhost:8080'; // 'https://lit-fortress-19290.herokuapp.com';
+    private url: string = 'https://lit-fortress-19290.herokuapp.com'; //'http://localhost:8080';
 
     private obsT = new BehaviorSubject(null);
     private obsUL = new BehaviorSubject(null);
