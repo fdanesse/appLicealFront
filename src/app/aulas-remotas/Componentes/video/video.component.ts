@@ -30,15 +30,29 @@ export class VideoComponent implements OnInit, AfterViewInit {
     constructor(private render2: Renderer2) {}
 
     ngOnInit() {}
+
     ngAfterViewInit() {
-        this.render2.setStyle(this.btn2.nativeElement, 'display', 'none');
+        this.render2.setStyle(this.btn3.nativeElement, 'display', 'none');
         this.render2.setStyle(this.btn1.nativeElement, 'display', 'none');
     }
 
     setStreaming(stream) {
+        // Se inicia con audio y video deshabilitado
         this.stream = stream;
+        let vtracks = this.stream.getVideoTracks();
+        let atracks = this.stream.getAudioTracks();
+        if (this._id === 'localVideo'){
+            vtracks.forEach(track => track.enabled = false);
+            atracks.forEach(track => track.enabled = false);
+            this.videoWidget.nativeElement.muted = true;
+        } else {
+            this.videoWidget.nativeElement.muted = false;
+            this.btn0.nativeElement.disabled = true;
+            this.btn1.nativeElement.disabled = true;
+            this.btn2.nativeElement.disabled = true;
+            this.btn3.nativeElement.disabled = true;
+        }
         this.videoWidget.nativeElement.srcObject = this.stream;
-        this.videoWidget.nativeElement.muted = true;
     }
 
     command(n){
@@ -51,7 +65,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
                     this.render2.setStyle(this.btn1.nativeElement, 'display', 'block');
                     this.render2.setStyle(this.btn0.nativeElement, 'display', 'none');
                 }
-                else{this.cambioTracks.emit({id: this._id, prop: 'audio', val: true});}
+                this.cambioTracks.emit({id: this._id, prop: 'audio', val: true});
                 break;
             case 1:
                 if (this._id === 'localVideo'){
@@ -59,7 +73,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
                     this.render2.setStyle(this.btn1.nativeElement, 'display', 'none');
                     this.render2.setStyle(this.btn0.nativeElement, 'display', 'block');
                 }
-                else{this.cambioTracks.emit({id: this._id, prop: 'audio', val: false});}
+                this.cambioTracks.emit({id: this._id, prop: 'audio', val: false});
                 break;
             case 2:
                 if (this._id === 'localVideo'){
@@ -67,7 +81,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
                     this.render2.setStyle(this.btn3.nativeElement, 'display', 'block');
                     this.render2.setStyle(this.btn2.nativeElement, 'display', 'none');
                 }
-                else{this.cambioTracks.emit({id: this._id, prop: 'video', val: true});}
+                this.cambioTracks.emit({id: this._id, prop: 'video', val: true});
                 break;
             case 3:
                 if (this._id === 'localVideo'){
@@ -75,7 +89,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
                     this.render2.setStyle(this.btn3.nativeElement, 'display', 'none');
                     this.render2.setStyle(this.btn2.nativeElement, 'display', 'block');
                 }
-                else{this.cambioTracks.emit({id: this._id, prop: 'video', val: false});}
+                this.cambioTracks.emit({id: this._id, prop: 'video', val: false});
                 break;
         }
     }

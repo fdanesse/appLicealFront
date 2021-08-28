@@ -57,12 +57,37 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     onCambioTracks(data){
-        // Solicitamos cambios en las pistas a una terminal
         const {id, prop, val} = data;
-        let conexion = this.conexiones.find(elemento => elemento.socketId === id);
-        if (conexion) {conexion.MediaControl.send(JSON.stringify({prop, val}));}
+        console.log("Enviando:", data);
+        if (id === 'localVideo'){
+            // FIXME: Avisar a todos mi estado en audio y video para que actualicen los botones
+            this.conexiones.forEach(conexion => conexion.MediaControl.send(JSON.stringify({msg: "aviso", prop, val})))
+        }else {
+            // Solicitamos activar o desactivar audio o video a una terminal remota
+            let conexion = this.conexiones.find(elemento => elemento.socketId === id);
+            if (conexion) {conexion.MediaControl.send(JSON.stringify({prop, val}));}
+        }
     }
 
+    controlMedia(event){
+        // Recibimos solicitud de activación o desactivación de audio o video desde anfitrión
+        console.log("Recibiendo:", event);
+        // Terminal remota solicita cambios en las pistas de audio o video
+        // FIXME: No cualquiera debiera poder hacer esto.
+        /*
+        let mensaje = JSON.parse(event.data);
+        console.log(mensaje, mensaje.prop === "video", this.stream);
+        if (mensaje.prop === "video"){
+            let vtracks = this.stream.getVideoTracks();
+            vtracks.forEach(track => track.enabled = mensaje.val);
+        }
+        if (mensaje.prop === "audio"){
+            let atracks = this.stream.getAudioTracks();
+            atracks.forEach(track => track.enabled = mensaje.val);
+        }
+        */
+    }
+    
     configurarObservers(){
         this.newDesconectadoSubscription = this.aulasSocketService.Desconectado.subscribe(
             socketId => {
@@ -241,7 +266,7 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
         dataChannel.onmessage = (event) => {this.controlMedia(event);}
         //dataChannel.onopen = this.handleDataChannelStatusChange;
         //dataChannel.onclose = this.handleDataChannelStatusChange;
-        console.log("Canal Creado", dataChannel);
+        //console.log("Canal Creado", dataChannel);
         return dataChannel;
     }
 
@@ -252,24 +277,6 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
         //dataChannel.onopen = this.handleDataChannelStatusChange;
         //dataChannel.onclose = this.handleDataChannelStatusChange;
         //console.log('Canal abierto', dataChannel);
-    }
-
-    controlMedia(event){
-        console.log(event);
-        // Terminal remota solicita cambios en las pistas de audio o video
-        // FIXME: No cualquiera debiera poder hacer esto.
-        /*
-        let mensaje = JSON.parse(event.data);
-            console.log(mensaje, mensaje.prop === "video", this.stream);
-            if (mensaje.prop === "video"){
-                let vtracks = this.stream.getVideoTracks();
-                vtracks.forEach(track => track.enabled = mensaje.val);
-            }
-            if (mensaje.prop === "audio"){
-                let atracks = this.stream.getAudioTracks();
-                atracks.forEach(track => track.enabled = mensaje.val);
-            }
-        */
     }
 
     /*
