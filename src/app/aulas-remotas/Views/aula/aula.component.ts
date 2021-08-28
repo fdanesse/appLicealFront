@@ -61,11 +61,15 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
         console.log("Enviando:", data);
         if (id === 'localVideo'){
             // FIXME: Avisar a todos mi estado en audio y video para que actualicen los botones
-            this.conexiones.forEach(conexion => conexion.MediaControl.send(JSON.stringify({msg: "aviso", prop, val})))
+            this.conexiones.forEach(conexion => {
+                //conexion.MediaControl.send(JSON.stringify({msg: "aviso", prop, val}));
+            })
         }else {
             // Solicitamos activar o desactivar audio o video a una terminal remota
             let conexion = this.conexiones.find(elemento => elemento.socketId === id);
-            if (conexion) {conexion.MediaControl.send(JSON.stringify({prop, val}));}
+            if (conexion) {
+                //conexion.MediaControl.send(JSON.stringify({prop, val}));
+            }
         }
     }
 
@@ -87,7 +91,7 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
         }
         */
     }
-    
+
     configurarObservers(){
         this.newDesconectadoSubscription = this.aulasSocketService.Desconectado.subscribe(
             socketId => {
