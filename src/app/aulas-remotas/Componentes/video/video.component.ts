@@ -42,10 +42,12 @@ export class VideoComponent implements OnInit, AfterViewInit {
         let vtracks = this.stream.getVideoTracks();
         let atracks = this.stream.getAudioTracks();
         if (this._id === 'localVideo'){
+            // video local siempre muteado. Todos comienzan con las pistas desactivadas.
             vtracks.forEach(track => track.enabled = false);
             atracks.forEach(track => track.enabled = false);
             this.videoWidget.nativeElement.muted = true;
         } else {
+            // Videos remotos, audio siempre activo.
             this.videoWidget.nativeElement.muted = false;
             this.btn0.nativeElement.disabled = true;
             this.btn1.nativeElement.disabled = true;
@@ -55,7 +57,31 @@ export class VideoComponent implements OnInit, AfterViewInit {
         this.videoWidget.nativeElement.srcObject = this.stream;
     }
 
+    setControles(data){
+        // Cuando se recibe mensaje por el canal de datos
+        const {msg, prop, val} = data;
+        if (prop === "audio"){
+            if (val === true){
+                this.render2.setStyle(this.btn1.nativeElement, 'display', 'block');
+                this.render2.setStyle(this.btn0.nativeElement, 'display', 'none');
+            }else{
+                this.render2.setStyle(this.btn1.nativeElement, 'display', 'none');
+                this.render2.setStyle(this.btn0.nativeElement, 'display', 'block');
+            }
+
+        }else if(prop === "video"){
+            if (val === true){
+                this.render2.setStyle(this.btn3.nativeElement, 'display', 'block');
+                this.render2.setStyle(this.btn2.nativeElement, 'display', 'none');
+            }else{
+                this.render2.setStyle(this.btn3.nativeElement, 'display', 'none');
+                this.render2.setStyle(this.btn2.nativeElement, 'display', 'block');
+            }
+        } 
+    }
+
     command(n){
+        // Cuando hacemos click en los botones de audio y video
         let vtracks = this.stream.getVideoTracks();
         let atracks = this.stream.getAudioTracks();
         switch (n){

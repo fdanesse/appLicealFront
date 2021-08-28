@@ -13,6 +13,7 @@ class Conexion{
 
         this.peerconn: RTCPeerConnection
         this.src: MediaStream
+        this.MediaControl: RTCDataChannel
     }
 }
 */
@@ -58,38 +59,32 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
 
     onCambioTracks(data){
         const {id, prop, val} = data;
-        console.log("Enviando:", data);
         if (id === 'localVideo'){
-            // FIXME: Avisar a todos mi estado en audio y video para que actualicen los botones
+            // Avisar a todos mi estado en audio y video para que actualicen los botones
             this.conexiones.forEach(conexion => {
-                //conexion.MediaControl.send(JSON.stringify({msg: "aviso", prop, val}));
+                conexion.MediaControl.send(JSON.stringify({msg: "aviso", prop, val}));
             })
         }else {
             // Solicitamos activar o desactivar audio o video a una terminal remota
             let conexion = this.conexiones.find(elemento => elemento.socketId === id);
             if (conexion) {
-                //conexion.MediaControl.send(JSON.stringify({prop, val}));
+                conexion.MediaControl.send(JSON.stringify({msg: "solicitud", prop, val}));
             }
         }
     }
 
-    controlMedia(event){
-        // Recibimos solicitud de activación o desactivación de audio o video desde anfitrión
-        console.log("Recibiendo:", event);
-        // Terminal remota solicita cambios en las pistas de audio o video
-        // FIXME: No cualquiera debiera poder hacer esto.
-        /*
+    controlMedia(event, conexionRemitente){
         let mensaje = JSON.parse(event.data);
-        console.log(mensaje, mensaje.prop === "video", this.stream);
-        if (mensaje.prop === "video"){
-            let vtracks = this.stream.getVideoTracks();
-            vtracks.forEach(track => track.enabled = mensaje.val);
+        // Cuando activamos o desactivamos el audio o el video, enviamos un mensaje para que
+        // las terminales remotas actualicen los botones.
+        if (mensaje.msg === "aviso"){
+            let video = this.videos.find(video => video._id === conexionRemitente.socketId);
+            video.setControles(mensaje);
+        }else if(mensaje.msg === "solicitud"){
+            // Terminal remota solicita cambios en las pistas de audio o video
+            // FIXME: No cualquiera debiera poder hacer esto.
+            console.log("Recibiendo:", mensaje, conexionRemitente);
         }
-        if (mensaje.prop === "audio"){
-            let atracks = this.stream.getAudioTracks();
-            atracks.forEach(track => track.enabled = mensaje.val);
-        }
-        */
     }
 
     configurarObservers(){
@@ -108,7 +103,7 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
                     conexion.peerconn.close();
                     let pos = this.conexiones.indexOf(conexion);
                     let eliminado = this.conexiones.splice(pos, 1);
-                    //console.log("Usuario desconectado:", socketId);
+                    console.log("Usuario desconectado:", socketId);
                 }
             },
             err => {
@@ -123,10 +118,9 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
                     let peerConn = this.newRTCPeerConnection();
                     this.negociarConexion(peerConn, conexionRemitente)
                     conexionRemitente['peerconn'] = peerConn as RTCPeerConnection;
-                    let dataChannel = this.newDataChannel(peerConn, "MediaControl");
-                    conexionRemitente[dataChannel.label] = dataChannel as RTCDataChannel;
+                    this.newDataChannel(conexionRemitente, peerConn, "MediaControl");
                     this.conexiones.push(conexionRemitente);
-                    //console.log("Dice Hello:", conexionRemitente);
+                    console.log("Dice Hello:", conexionRemitente);
                 }
             },
             err => {
@@ -145,7 +139,7 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
                     peerConn.ondatachannel = (event) => {this.handleDataChannelCreated(event, conexionRemitente)};
                     this.conexiones.push(conexionRemitente);
                     this.responder(conexionRemitente, sdp);
-                    //console.log("Nueva oferta recibida de:", conexionRemitente.socketId);
+                    console.log("Nueva oferta recibida de:", conexionRemitente.socketId);
                 }
             },
             err => {
@@ -159,8 +153,8 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
                 if (candidato){
                     const {remitente, ice} = candidato;
                     let conexion = this.conexiones.find(elemento => elemento.socketId === remitente)
-                    //console.log("Nuevo candidato recibido de:", remitente, candidato);
                     conexion.peerconn.addIceCandidate(ice);
+                    console.log("Nuevo candidato recibido de:", remitente, candidato);
                 }
             },
             err => {
@@ -174,8 +168,8 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
                 if (respuesta){
                     const {remitente, sdp} = respuesta;
                     let conexion = this.conexiones.find(elemento => elemento.socketId === remitente)
-                    //console.log("Nueva respuesta recibida:", remitente);
                     conexion.peerconn.setRemoteDescription(sdp);
+                    console.log("Nueva respuesta recibida:", remitente);
                 }
             },
             err => {
@@ -265,9 +259,10 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
         return peerConn;
     }
 
-    newDataChannel(peerConn, labelName){
+    newDataChannel(conexionRemitente, peerConn, labelName){
         let dataChannel = peerConn.createDataChannel(labelName);
-        dataChannel.onmessage = (event) => {this.controlMedia(event);}
+        conexionRemitente[dataChannel.label] = dataChannel as RTCDataChannel;
+        dataChannel.onmessage = (event) => {this.controlMedia(event, conexionRemitente);}
         //dataChannel.onopen = this.handleDataChannelStatusChange;
         //dataChannel.onclose = this.handleDataChannelStatusChange;
         //console.log("Canal Creado", dataChannel);
@@ -277,7 +272,7 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
     handleDataChannelCreated(event, conexionRemitente) {
         let dataChannel = event.channel;
         conexionRemitente[dataChannel.label] = dataChannel as RTCDataChannel;
-        dataChannel.onmessage = (event) => {this.controlMedia(event);}
+        dataChannel.onmessage = (event) => {this.controlMedia(event, conexionRemitente);}
         //dataChannel.onopen = this.handleDataChannelStatusChange;
         //dataChannel.onclose = this.handleDataChannelStatusChange;
         //console.log('Canal abierto', dataChannel);
