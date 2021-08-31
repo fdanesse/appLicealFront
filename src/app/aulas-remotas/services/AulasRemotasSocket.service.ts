@@ -6,6 +6,8 @@ import { Socket, SocketIoConfig } from 'ngx-socket-io';
 //import jwt_decode from "jwt-decode"; //https://www.npmjs.com/package/jwt-decode
 
 const token = localStorage.getItem("Authorization");
+const user = localStorage.getItem("UserLoggued");
+const {nombre, apellido, usuario} = JSON.parse(user);
 
 const config: SocketIoConfig = {
     url: 'https://lit-fortress-19290.herokuapp.com', //'http://localhost:8080',
@@ -16,7 +18,7 @@ const config: SocketIoConfig = {
         transports: ['websocket'],
         secure:true, 
         rejectUnauthorized: false,
-        query: {token: token},
+        query: {token: token, nombre: nombre, apellido: apellido, usuario: usuario},
     }
 }
 

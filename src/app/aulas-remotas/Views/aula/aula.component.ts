@@ -6,10 +6,13 @@ import { VideoComponent } from '../../Componentes/video/video.component';
 
 /*
 class Conexion{
-    constructor(socketId, userId, tiempo){
+    constructor(socketId, tiempo, userId, usuario, nombre, apellido){
         this.socketId = socketId
         this.userId = userId
         this.tiempo = tiempo
+        this.usuario = usuario
+        this.nombre = nombre
+        this.apellido = apellido
 
         this.peerconn: RTCPeerConnection
         this.src: MediaStream
@@ -92,18 +95,20 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
             socketId => {
                 if (socketId){
                     let conexion = this.conexiones.find(elemento => elemento.socketId === socketId);
-                    conexion.peerconn.ontrack = null;
-                    //conexion.peerconn.onremovetrack = null;
-                    //conexion.peerconn.onremovestream = null;
-                    conexion.peerconn.onicecandidate = null;
-                    conexion.peerconn.oniceconnectionstatechange = null;
-                    conexion.peerconn.onsignalingstatechange = null;
-                    conexion.peerconn.onicegatheringstatechange = null;
-                    conexion.peerconn.onnegotiationneeded = null;
-                    conexion.peerconn.close();
-                    let pos = this.conexiones.indexOf(conexion);
-                    let eliminado = this.conexiones.splice(pos, 1);
-                    console.log("Usuario desconectado:", socketId);
+                    if (conexion){
+                        conexion.peerconn.ontrack = null;
+                        //conexion.peerconn.onremovetrack = null;
+                        //conexion.peerconn.onremovestream = null;
+                        conexion.peerconn.onicecandidate = null;
+                        conexion.peerconn.oniceconnectionstatechange = null;
+                        conexion.peerconn.onsignalingstatechange = null;
+                        conexion.peerconn.onicegatheringstatechange = null;
+                        conexion.peerconn.onnegotiationneeded = null;
+                        conexion.peerconn.close();
+                        let pos = this.conexiones.indexOf(conexion);
+                        let eliminado = this.conexiones.splice(pos, 1);
+                    }
+                    //console.log("Usuario desconectado:", socketId);
                 }
             },
             err => {
@@ -120,7 +125,7 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
                     conexionRemitente['peerconn'] = peerConn as RTCPeerConnection;
                     this.newDataChannel(conexionRemitente, peerConn, "MediaControl");
                     this.conexiones.push(conexionRemitente);
-                    console.log("Dice Hello:", conexionRemitente);
+                    //console.log("Dice Hello:", conexionRemitente);
                 }
             },
             err => {
@@ -139,7 +144,7 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
                     peerConn.ondatachannel = (event) => {this.handleDataChannelCreated(event, conexionRemitente)};
                     this.conexiones.push(conexionRemitente);
                     this.responder(conexionRemitente, sdp);
-                    console.log("Nueva oferta recibida de:", conexionRemitente.socketId);
+                    //console.log("Nueva oferta recibida de:", conexionRemitente.socketId);
                 }
             },
             err => {
@@ -154,7 +159,7 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
                     const {remitente, ice} = candidato;
                     let conexion = this.conexiones.find(elemento => elemento.socketId === remitente)
                     conexion.peerconn.addIceCandidate(ice);
-                    console.log("Nuevo candidato recibido de:", remitente, candidato);
+                    //console.log("Nuevo candidato recibido de:", remitente, candidato);
                 }
             },
             err => {
@@ -169,7 +174,7 @@ export class AulaComponent implements OnInit, OnDestroy, AfterViewInit {
                     const {remitente, sdp} = respuesta;
                     let conexion = this.conexiones.find(elemento => elemento.socketId === remitente)
                     conexion.peerconn.setRemoteDescription(sdp);
-                    console.log("Nueva respuesta recibida:", remitente);
+                    //console.log("Nueva respuesta recibida:", remitente);
                 }
             },
             err => {
